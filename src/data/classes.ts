@@ -26,7 +26,7 @@ const f = (s: string) => {
   const r: Record<number, string[]> = {};
   s.split(";").forEach((p) => {
     const [l, n] = p.split(":");
-    r[Number(l)] = n.split("|").map((x) => (x === "ASI" ? "Ability Score Improvement" : x));
+    r[Number(l)] = (n ?? "").split("|").filter(Boolean).map((x) => (x === "ASI" ? "Ability Score Improvement" : x));
   });
   return r;
 };
@@ -144,8 +144,8 @@ const FULL: number[][] = [
 /** Slots pro Grad (Index 0 = Grad 1). */
 export function spellSlots(c: ClassDef | undefined, level: number): number[] {
   if (!c?.caster) return [];
-  if (c.caster === "full") return FULL[level];
-  if (c.caster === "half") return FULL[Math.ceil(level / 2)];
+  if (c.caster === "full") return FULL[level] ?? [];
+  if (c.caster === "half") return FULL[Math.ceil(level / 2)] ?? [];
   const count = level >= 17 ? 4 : level >= 11 ? 3 : level >= 2 ? 2 : 1;
   const slotLvl = Math.min(5, Math.ceil(level / 2));
   return Array.from({ length: slotLvl }, (_, i) => (i === slotLvl - 1 ? count : 0));

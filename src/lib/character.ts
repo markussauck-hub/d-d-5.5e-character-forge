@@ -14,15 +14,15 @@ export interface Character {
   level: number;
   backgroundId?: string;
   speciesId?: string;
-  speciesOption?: string;
-  size?: string;
+  speciesOption?: string | undefined;
+  size?: string | undefined;
   method: Method;
   baseScores: Record<Ab, number>;
   assign: Record<Ab, number>; // Index in Pool, -1 = leer
   rolled: number[];
   bgMode: "21" | "111";
-  bgPlus2?: Ab;
-  bgPlus1?: Ab;
+  bgPlus2?: Ab | undefined;
+  bgPlus1?: Ab | undefined;
   asi: Record<Ab, number>;
   skillProfs: string[];
   expertise: string[];
@@ -152,7 +152,7 @@ export function derive(c: Character) {
     const prof = !!cls?.saves.includes(a);
     saves[a] = { prof, v: ov(c, `save:${a}`, mods[a] + (prof ? pb : 0)) };
   }
-  const bgSkills = bg?.skills ?? [];
+  const bgSkills: string[] = bg?.skills ?? [];
   const skills = SKILLS.map((s) => {
     const prof = bgSkills.includes(s.name) || c.skillProfs.includes(s.name);
     const exp = prof && c.expertise.includes(s.name);

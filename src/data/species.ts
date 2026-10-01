@@ -19,10 +19,10 @@ export const SPECIES: Species[] = [
       { name: "Draconic Flight", text: "Ab Level 5: Bonusaktion für 10 Minuten Flugbewegung gleich deiner Speed, 1× pro Long Rest." },
     ],
     optionLabel: "Draconic Ancestry",
-    options: [
+    options: ([
       ["Black", "Acid"], ["Blue", "Lightning"], ["Brass", "Fire"], ["Bronze", "Lightning"], ["Copper", "Acid"],
       ["Gold", "Fire"], ["Green", "Poison"], ["Red", "Fire"], ["Silver", "Cold"], ["White", "Cold"],
-    ].map(([n, d]) => ({ name: n, text: `Schadensart: ${d}` })),
+    ] as [string, string][]).map(([n, d]) => ({ name: n, text: `Schadensart: ${d}` })),
   },
   {
     id: "dwarf", name: "Dwarf", sizes: ["Medium"], speed: 30,

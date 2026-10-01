@@ -21,7 +21,7 @@ export function AbilityStep({ c, set }: { c: Character; set: (p: Partial<Charact
   const assign = (a: Ab, idx: number) => {
     const next = { ...c.assign, [a]: idx };
     const base = { ...c.baseScores };
-    ABILITIES.forEach((x) => (base[x] = next[x] >= 0 ? pool[next[x]] : 8));
+    ABILITIES.forEach((x) => (base[x] = next[x] >= 0 ? (pool[next[x]] ?? 8) : 8));
     set({ assign: next, baseScores: base });
   };
 
@@ -88,7 +88,7 @@ export function AbilityStep({ c, set }: { c: Character; set: (p: Partial<Charact
                   <div className="flex items-center gap-2">
                     <button className="btn btn-sm" disabled={c.baseScores[a] <= 8} onClick={() => set({ baseScores: { ...c.baseScores, [a]: c.baseScores[a] - 1 } })}>−</button>
                     <span className="w-8 text-center text-lg font-bold">{c.baseScores[a]}</span>
-                    <button className="btn btn-sm" disabled={c.baseScores[a] >= 15 || spent + POINT_COST[c.baseScores[a] + 1] - POINT_COST[c.baseScores[a]] > 27} onClick={() => set({ baseScores: { ...c.baseScores, [a]: c.baseScores[a] + 1 } })}>+</button>
+                    <button className="btn btn-sm" disabled={c.baseScores[a] >= 15 || spent + (POINT_COST[c.baseScores[a] + 1] ?? 0) - (POINT_COST[c.baseScores[a]] ?? 0) > 27} onClick={() => set({ baseScores: { ...c.baseScores, [a]: c.baseScores[a] + 1 } })}>+</button>
                     <span className="label ml-auto">Kosten {POINT_COST[c.baseScores[a]]}</span>
                   </div>
                 ) : (

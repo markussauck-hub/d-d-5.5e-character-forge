@@ -86,7 +86,7 @@ function ClassStep({ c, set }: P) {
           </div>
           <p className="mt-1 text-xs text-muted-foreground">Primär: {k.primary} · Saves: {k.saves.join(", ")}</p>
           <p className="mt-1 text-xs text-muted-foreground">Subklasse: {k.subclass}</p>
-          <p className="mt-2 text-xs">{k.features[1].join(", ")}</p>
+          <p className="mt-2 text-xs">{k.features[1]?.join(", ")}</p>
         </button>
       ))}
     </div>
@@ -169,7 +169,7 @@ function SpeciesStep({ c, set }: P) {
 function SkillStep({ c, set }: P) {
   const d = derive(c);
   const cls = d.cls;
-  const bgSkills = d.bg?.skills ?? [];
+  const bgSkills: string[] = d.bg?.skills ?? [];
   const picked = c.skillProfs.filter((s) => cls?.skillList.includes(s) && !bgSkills.includes(s));
   const toggle = (s: string) =>
     set({ skillProfs: c.skillProfs.includes(s) ? c.skillProfs.filter((x) => x !== s) : [...c.skillProfs, s] });
