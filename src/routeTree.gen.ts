@@ -10,33 +10,53 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SheetIdRouteImport } from './routes/sheet.$id'
+import { Route as WizardIdRouteImport } from './routes/wizard.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SheetIdRoute = SheetIdRouteImport.update({
+  id: '/sheet/$id',
+  path: '/sheet/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WizardIdRoute = WizardIdRouteImport.update({
+  id: '/wizard/$id',
+  path: '/wizard/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/sheet/$id': typeof SheetIdRoute
+  '/wizard/$id': typeof WizardIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/sheet/$id': typeof SheetIdRoute
+  '/wizard/$id': typeof WizardIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/sheet/$id': typeof SheetIdRoute
+  '/wizard/$id': typeof WizardIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/sheet/$id' | '/wizard/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/sheet/$id' | '/wizard/$id'
+  id: '__root__' | '/' | '/sheet/$id' | '/wizard/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  SheetIdRoute: typeof SheetIdRoute
+  WizardIdRoute: typeof WizardIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +68,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sheet/$id': {
+      id: '/sheet/$id'
+      path: '/sheet/$id'
+      fullPath: '/sheet/$id'
+      preLoaderRoute: typeof SheetIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/wizard/$id': {
+      id: '/wizard/$id'
+      path: '/wizard/$id'
+      fullPath: '/wizard/$id'
+      preLoaderRoute: typeof WizardIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  SheetIdRoute: SheetIdRoute,
+  WizardIdRoute: WizardIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
