@@ -6,6 +6,7 @@ import { SPECIES } from "@/data/species";
 import { ALIGNMENTS, ARMORS, ARMOR_TYPE_DE, AB_NAMES, AB_SHORT, alignmentName, sizeName, skillName } from "@/data/rules";
 import { abilityIssues, derive, skillIssues, updateCharacter, useCharacters, useHydratedStore, type Character } from "@/lib/character";
 import { AbilityStep } from "@/components/AbilityStep";
+import { PortraitPrompt } from "@/components/PortraitPrompt";
 
 export const Route = createFileRoute("/wizard/$id")({
   head: () => ({
@@ -272,8 +273,9 @@ function DetailStep({ c, set }: P) {
         </select>
       </label>
       <label className="space-y-1 sm:col-span-2"><span className="label">Aussehen</span>
-        <textarea className="field min-h-24" value={c.appearance} onChange={(e) => set({ appearance: e.target.value })} />
+        <textarea className="field min-h-24" value={c.appearance} placeholder="z. B. kurzes rotes Haar, Narbe über dem linken Auge, grüner Reisemantel" onChange={(e) => set({ appearance: e.target.value })} />
       </label>
+      <PortraitPrompt c={c} />
       <label className="space-y-1 sm:col-span-2"><span className="label">Notizen</span>
         <textarea className="field min-h-32" value={c.notes} onChange={(e) => set({ notes: e.target.value })} />
       </label>
