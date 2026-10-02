@@ -5,7 +5,7 @@ import {
 } from "@/data/rules";
 import { featuresAt, isAsiLevel, masteryCount, SUBCLASS_LEVEL } from "@/data/classes";
 import { speciesOptionLabel } from "@/data/species";
-import { abilityIssues, derive, fmt, updateCharacter, useCharacters, useHydratedStore, type Character } from "@/lib/character";
+import { abilityIssues, derive, skillIssues, fmt, updateCharacter, useCharacters, useHydratedStore, type Character } from "@/lib/character";
 
 export const Route = createFileRoute("/sheet/$id")({
   head: () => ({
@@ -52,7 +52,9 @@ function Sheet() {
   if (!c) return <main className="p-10 text-center text-muted-foreground">{hydrated ? <>Charakter nicht gefunden. <Link to="/" className="underline">Zur Liste</Link></> : "Lade…"}</main>;
   const set = (p: Partial<Character>) => updateCharacter(id, () => p);
   const d = derive(c);
-  const issues = abilityIssues(c);
+  const aIssues = abilityIssues(c);
+  const sIssues = skillIssues(c);
+  const issues = [...aIssues, ...sIssues];
   const setOv = (k: string, v: number | null) => {
     const o = { ...c.overrides };
     if (v === null || Number.isNaN(v)) delete o[k]; else o[k] = v;
@@ -80,7 +82,9 @@ function Sheet() {
         <div className="no-print mb-4 rounded-lg border border-ember bg-ember/10 p-3 text-sm">
           <b>Charakter unvollständig:</b>
           <ul className="ml-5 list-disc">{issues.map((i) => <li key={i}>{i}</li>)}</ul>
-          <Link to="/wizard/$id" params={{ id }} className="underline">Im Assistenten unter „Attribute“ ergänzen →</Link>
+          <Link to="/wizard/$id" params={{ id }} className="underline">
+            Im Assistenten ergänzen{aIssues.length ? " (Attribute)" : ""}{sIssues.length ? " (Fertigkeiten & Ausrüstung)" : ""} →
+          </Link>
         </div>
       )}
 
@@ -197,7 +201,7 @@ function Sheet() {
                     </div>
                   ))}
                 </div>
-                <textarea className="field mt-2 min-h-28" placeholder="Zauber (ein Eintrag pro Zeile)" value={c.spells} onChange={(e) => set({ spells: e.target.value })} />
+                <PrintableText className="field mt-2 min-h-28" placeholder="Zauber (ein Eintrag pro Zeile)" value={c.spells} onChange={(v) => set({ spells: v })} />
               </div>
             )}
           </div>
@@ -231,12 +235,12 @@ function Sheet() {
             </div>
             <div className="sheet-box">
               <div className="sheet-title">Inventar</div>
-              <textarea className="field min-h-32" value={c.inventory} onChange={(e) => set({ inventory: e.target.value })} />
+              <PrintableText className="field min-h-32" value={c.inventory} onChange={(v) => set({ inventory: v })} />
             </div>
             <div className="sheet-box">
               <div className="sheet-title">Aussehen & Notizen</div>
-              <textarea className="field min-h-20" value={c.appearance} placeholder="Aussehen" onChange={(e) => set({ appearance: e.target.value })} />
-              <textarea className="field mt-2 min-h-24" value={c.notes} placeholder="Notizen" onChange={(e) => set({ notes: e.target.value })} />
+              <PrintableText className="field min-h-20" value={c.appearance} placeholder="Aussehen" onChange={(v) => set({ appearance: v })} />
+              <PrintableText className="field mt-2 min-h-24" value={c.notes} placeholder="Notizen" onChange={(v) => set({ notes: v })} />
             </div>
           </div>
         </div>
@@ -246,6 +250,15 @@ function Sheet() {
   );
 }
 
+/** Textfeld am Bildschirm; im Druck vollständiger Text statt abgeschnittener, scrollender Textarea. */
+const PrintableText = ({ value, onChange, placeholder, className }: {
+  value: string; onChange: (v: string) => void; placeholder?: string; className: string;
+}) => (
+  <>
+    <textarea className={`screen-only ${className}`} placeholder={placeholder} value={value} onChange={(e) => onChange(e.target.value)} />
+    <div className="print-only whitespace-pre-wrap text-sm">{value}</div>
+  </>
+);
 const Info = ({ l, v }: { l: string; v: string }) => (<div><div className="label">{l}</div><div className="font-semibold">{v}</div></div>);
 const Big = ({ l, children }: { l: string; children: React.ReactNode }) => (<div className="sheet-box text-center"><div className="label">{l}</div>{children}</div>);
 const Row = ({ dot, label, children }: { dot: boolean; label: string; children: React.ReactNode }) => (

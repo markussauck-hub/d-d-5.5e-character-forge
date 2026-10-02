@@ -4,7 +4,7 @@ import { CLASSES } from "@/data/classes";
 import { BACKGROUNDS, ORIGIN_FEATS } from "@/data/backgrounds";
 import { SPECIES } from "@/data/species";
 import { ALIGNMENTS, ARMORS, ARMOR_TYPE_DE, AB_NAMES, AB_SHORT, alignmentName, sizeName, skillName } from "@/data/rules";
-import { abilityIssues, derive, updateCharacter, useCharacters, useHydratedStore, type Character } from "@/lib/character";
+import { abilityIssues, derive, skillIssues, updateCharacter, useCharacters, useHydratedStore, type Character } from "@/lib/character";
 import { AbilityStep } from "@/components/AbilityStep";
 
 export const Route = createFileRoute("/wizard/$id")({
@@ -21,6 +21,7 @@ export const Route = createFileRoute("/wizard/$id")({
 
 const STEPS = ["Klasse", "Hintergrund", "Spezies", "Attribute", "Fertigkeiten & Ausrüstung", "Details"];
 const ABILITY_STEP = 3;
+const SKILL_STEP = 4;
 
 function Wizard() {
   const { id } = Route.useParams();
@@ -30,7 +31,10 @@ function Wizard() {
 
   if (!c) return <main className="p-10 text-center text-muted-foreground">{hydrated ? <>Charakter nicht gefunden. <Link to="/" className="underline">Zur Liste</Link></> : "Lade…"}</main>;
   const set = (p: Partial<Character>) => updateCharacter(id, () => p);
-  const issues = abilityIssues(c);
+  const aIssues = abilityIssues(c);
+  const sIssues = skillIssues(c);
+  const issues = [...aIssues, ...sIssues];
+  const stepIssues = (i: number) => (i === ABILITY_STEP ? aIssues : i === SKILL_STEP ? sIssues : []);
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
@@ -48,8 +52,8 @@ function Wizard() {
           {STEPS.map((s, i) => (
             <li key={s}>
               <button onClick={() => setStep(i)} className={`btn btn-sm ${i === step ? "btn-primary" : ""}`}
-                title={i === ABILITY_STEP && issues.length ? issues.join(" ") : undefined}>
-                {i + 1}. {s}{i === ABILITY_STEP && issues.length > 0 && <span className="ml-1 text-ember">⚠</span>}
+                title={stepIssues(i).length ? stepIssues(i).join(" ") : undefined}>
+                {i + 1}. {s}{stepIssues(i).length > 0 && <span className="ml-1 text-ember">⚠</span>}
               </button>
             </li>
           ))}
@@ -69,7 +73,9 @@ function Wizard() {
         <div className="mt-6 rounded-lg border border-ember bg-ember/10 p-3 text-sm">
           <b>Noch nicht vollständig:</b>
           <ul className="ml-5 list-disc">{issues.map((i) => <li key={i}>{i}</li>)}</ul>
-          <button className="underline" onClick={() => setStep(ABILITY_STEP)}>Zu den Attributen →</button>
+          <button className="underline" onClick={() => setStep(aIssues.length ? ABILITY_STEP : SKILL_STEP)}>
+            {aIssues.length ? "Zu den Attributen →" : "Zu den Fertigkeiten →"}
+          </button>
         </div>
       )}
 

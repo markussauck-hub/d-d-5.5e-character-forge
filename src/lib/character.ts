@@ -153,6 +153,16 @@ export function abilityIssues(c: Character): string[] {
   return issues;
 }
 
+/** Offene Punkte bei den Fertigkeiten – leer, wenn alles vollständig ist. */
+export function skillIssues(c: Character): string[] {
+  const cls = getClass(c.classId);
+  if (!cls) return [];
+  const bgSkills: string[] = getBackground(c.backgroundId)?.skills ?? [];
+  const picked = c.skillProfs.filter((s) => cls.skillList.includes(s) && !bgSkills.includes(s)).length;
+  const open = cls.skillCount - picked;
+  return open > 0 ? [`Es fehlen noch ${open} von ${cls.skillCount} Fertigkeiten der Klasse ${cls.name}.`] : [];
+}
+
 export function derive(c: Character) {
   const cls = getClass(c.classId);
   const bg = getBackground(c.backgroundId);

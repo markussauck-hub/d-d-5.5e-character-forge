@@ -118,8 +118,13 @@
   66% { transform: rotate(-12deg) translateY(2px); }
 }
 
+.print-only { display: none; }
+
 @media print {
   @page { size: A4; margin: 10mm; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .print-only { display: block; }
+  .screen-only { display: none !important; }
   body { background: white !important; }
   .no-print { display: none !important; }
   .parchment { background: white !important; box-shadow: none !important; }
