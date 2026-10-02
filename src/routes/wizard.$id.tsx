@@ -3,15 +3,15 @@ import { useState } from "react";
 import { CLASSES } from "@/data/classes";
 import { BACKGROUNDS, ORIGIN_FEATS } from "@/data/backgrounds";
 import { SPECIES } from "@/data/species";
-import { ALIGNMENTS, ARMORS, AB_NAMES } from "@/data/rules";
-import { derive, updateCharacter, useCharacters, useHydratedStore, type Character } from "@/lib/character";
+import { ALIGNMENTS, ARMORS, ARMOR_TYPE_DE, AB_NAMES, AB_SHORT, alignmentName, sizeName, skillName } from "@/data/rules";
+import { abilityIssues, derive, updateCharacter, useCharacters, useHydratedStore, type Character } from "@/lib/character";
 import { AbilityStep } from "@/components/AbilityStep";
 
 export const Route = createFileRoute("/wizard/$id")({
   head: () => ({
     meta: [
       { title: "Charaktererstellung – Heldenschmiede" },
-      { name: "description", content: "Schritt für Schritt: Klasse, Background, Species, Attribute, Fertigkeiten und Details." },
+      { name: "description", content: "Schritt für Schritt: Klasse, Hintergrund, Spezies, Attribute, Fertigkeiten und Details." },
       { property: "og:title", content: "Charaktererstellung – Heldenschmiede" },
       { property: "og:description", content: "Schritt-für-Schritt-Assistent für SRD-5.2-Charaktere." },
     ],
@@ -19,7 +19,8 @@ export const Route = createFileRoute("/wizard/$id")({
   component: Wizard,
 });
 
-const STEPS = ["Klasse", "Background", "Species", "Attribute", "Fertigkeiten & Ausrüstung", "Details"];
+const STEPS = ["Klasse", "Hintergrund", "Spezies", "Attribute", "Fertigkeiten & Ausrüstung", "Details"];
+const ABILITY_STEP = 3;
 
 function Wizard() {
   const { id } = Route.useParams();
@@ -29,6 +30,7 @@ function Wizard() {
 
   if (!c) return <main className="p-10 text-center text-muted-foreground">{hydrated ? <>Charakter nicht gefunden. <Link to="/" className="underline">Zur Liste</Link></> : "Lade…"}</main>;
   const set = (p: Partial<Character>) => updateCharacter(id, () => p);
+  const issues = abilityIssues(c);
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
@@ -45,7 +47,10 @@ function Wizard() {
         <ol className="flex flex-wrap gap-2">
           {STEPS.map((s, i) => (
             <li key={s}>
-              <button onClick={() => setStep(i)} className={`btn btn-sm ${i === step ? "btn-primary" : ""}`}>{i + 1}. {s}</button>
+              <button onClick={() => setStep(i)} className={`btn btn-sm ${i === step ? "btn-primary" : ""}`}
+                title={i === ABILITY_STEP && issues.length ? issues.join(" ") : undefined}>
+                {i + 1}. {s}{i === ABILITY_STEP && issues.length > 0 && <span className="ml-1 text-ember">⚠</span>}
+              </button>
             </li>
           ))}
         </ol>
@@ -59,6 +64,14 @@ function Wizard() {
         {step === 4 && <SkillStep c={c} set={set} />}
         {step === 5 && <DetailStep c={c} set={set} />}
       </section>
+
+      {step === STEPS.length - 1 && issues.length > 0 && (
+        <div className="mt-6 rounded-lg border border-ember bg-ember/10 p-3 text-sm">
+          <b>Noch nicht vollständig:</b>
+          <ul className="ml-5 list-disc">{issues.map((i) => <li key={i}>{i}</li>)}</ul>
+          <button className="underline" onClick={() => setStep(ABILITY_STEP)}>Zu den Attributen →</button>
+        </div>
+      )}
 
       <div className="mt-8 flex justify-between">
         <button className="btn" disabled={step === 0} onClick={() => setStep(step - 1)}>← Zurück</button>
@@ -84,8 +97,8 @@ function ClassStep({ c, set }: P) {
             <span className="font-display text-lg font-bold">{k.name}</span>
             <span className="label">d{k.hitDie}</span>
           </div>
-          <p className="mt-1 text-xs text-muted-foreground">Primär: {k.primary} · Saves: {k.saves.join(", ")}</p>
-          <p className="mt-1 text-xs text-muted-foreground">Subklasse: {k.subclass}</p>
+          <p className="mt-1 text-xs text-muted-foreground">Primär: {k.primary} · Rettungswürfe: {k.saves.map((a) => AB_SHORT[a]).join(", ")}</p>
+          <p className="mt-1 text-xs text-muted-foreground">Unterklasse: {k.subclass}</p>
           <p className="mt-2 text-xs">{k.features[1]?.join(", ")}</p>
         </button>
       ))}
@@ -103,16 +116,16 @@ function BackgroundStep({ c, set }: P) {
             <span className="font-display text-lg font-bold">{b.name}</span>
             <dl className="mt-2 space-y-1 text-xs">
               <div><b>Attribute:</b> {b.abilities.map((a) => AB_NAMES[a]).join(", ")}</div>
-              <div><b>Origin Feat:</b> {b.feat}</div>
-              <div><b>Skills:</b> {b.skills.join(", ")}</div>
-              <div><b>Tool:</b> {b.tool}</div>
-              <div className="text-muted-foreground"><b>Ausrüstung:</b> A) {b.equipment}, {b.gold} GP · oder B) 50 GP</div>
+              <div><b>Herkunftstalent:</b> {b.feat}</div>
+              <div><b>Fertigkeiten:</b> {b.skills.map(skillName).join(", ")}</div>
+              <div><b>Werkzeug:</b> {b.tool}</div>
+              <div className="text-muted-foreground"><b>Ausrüstung:</b> A) {b.equipment}, {b.gold} GM · oder B) 50 GM</div>
             </dl>
           </button>
         ))}
       </div>
       <div className="panel">
-        <h3 className="mb-2 font-bold">Origin Feats (SRD)</h3>
+        <h3 className="mb-2 font-bold">Herkunftstalente (SRD)</h3>
         <ul className="space-y-1 text-sm">
           {ORIGIN_FEATS.map((f) => <li key={f.name}><b>{f.name}:</b> <span className="text-muted-foreground">{f.text}</span></li>)}
         </ul>
@@ -130,7 +143,7 @@ function SpeciesStep({ c, set }: P) {
           <button key={s.id} className="choice" data-active={c.speciesId === s.id}
             onClick={() => set({ speciesId: s.id, speciesOption: undefined, size: s.sizes[0] })}>
             <span className="font-display text-lg font-bold">{s.name}</span>
-            <p className="text-xs text-muted-foreground">{s.sizes.join(" / ")} · {s.speed} ft</p>
+            <p className="text-xs text-muted-foreground">{s.sizes.map(sizeName).join(" / ")} · {s.speed} ft</p>
           </button>
         ))}
       </div>
@@ -141,9 +154,9 @@ function SpeciesStep({ c, set }: P) {
             {sp.traits.map((t) => <li key={t.name}><b>{t.name}:</b> <span className="text-muted-foreground">{t.text}</span></li>)}
           </ul>
           {sp.sizes.length > 1 && (
-            <label className="block max-w-xs space-y-1"><span className="label">Size</span>
+            <label className="block max-w-xs space-y-1"><span className="label">Größe</span>
               <select className="field" value={c.size} onChange={(e) => set({ size: e.target.value })}>
-                {sp.sizes.map((s) => <option key={s}>{s}</option>)}
+                {sp.sizes.map((s) => <option key={s} value={s}>{sizeName(s)}</option>)}
               </select>
             </label>
           )}
@@ -153,7 +166,7 @@ function SpeciesStep({ c, set }: P) {
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {sp.options.map((o) => (
                   <button key={o.name} className="choice" data-active={c.speciesOption === o.name} onClick={() => set({ speciesOption: o.name })}>
-                    <b>{o.name}</b>
+                    <b>{o.label}</b>
                     <p className="text-xs text-muted-foreground">{o.text}</p>
                   </button>
                 ))}
@@ -186,7 +199,7 @@ function SkillStep({ c, set }: P) {
   return (
     <div className="space-y-6">
       <div className="panel">
-        <h3 className="font-bold">Skill-Proficiencies {cls && `(${picked.length}/${cls.skillCount} aus ${cls.name})`}</h3>
+        <h3 className="font-bold">Fertigkeiten mit Übung {cls && `(${picked.length}/${cls.skillCount} aus ${cls.name})`}</h3>
         {!cls ? <p className="text-sm text-muted-foreground">Wähle zuerst eine Klasse.</p> : (
           <div className="mt-3 flex flex-wrap gap-2">
             {cls.skillList.map((s) => {
@@ -194,25 +207,25 @@ function SkillStep({ c, set }: P) {
               const on = fromBg || c.skillProfs.includes(s);
               return (
                 <button key={s} disabled={fromBg || (!on && picked.length >= cls.skillCount)} onClick={() => toggle(s)}
-                  className={`btn btn-sm ${on ? "btn-primary" : ""}`} title={fromBg ? "Durch Background" : ""}>
-                  {s}{fromBg && " (BG)"}
+                  className={`btn btn-sm ${on ? "btn-primary" : ""}`} title={fromBg ? "Durch Hintergrund" : ""}>
+                  {skillName(s)}{fromBg && " (HG)"}
                 </button>
               );
             })}
           </div>
         )}
-        {bgSkills.length > 0 && <p className="mt-3 text-xs text-muted-foreground">Durch Background: {bgSkills.join(", ")}. Weitere Proficiencies (z. B. Human Skillful, Skilled) kannst du auf dem Bogen setzen.</p>}
+        {bgSkills.length > 0 && <p className="mt-3 text-xs text-muted-foreground">Durch Hintergrund: {bgSkills.map(skillName).join(", ")}. Weitere Übungen (z. B. Mensch: Geschickt, Talent Geübt) kannst du auf dem Bogen setzen.</p>}
       </div>
 
       <div className="panel space-y-3">
-        <h3 className="font-bold">Background-Ausrüstung</h3>
-        {!d.bg ? <p className="text-sm text-muted-foreground">Wähle zuerst einen Background.</p> : (
+        <h3 className="font-bold">Ausrüstung des Hintergrunds</h3>
+        {!d.bg ? <p className="text-sm text-muted-foreground">Wähle zuerst einen Hintergrund.</p> : (
           <div className="grid gap-2 sm:grid-cols-2">
             <button className="choice" data-active={c.equipmentChoice === "A"} onClick={() => chooseEquip("A")}>
-              <b>Option A</b><p className="text-xs text-muted-foreground">{d.bg.equipment}, {d.bg.gold} GP</p>
+              <b>Option A</b><p className="text-xs text-muted-foreground">{d.bg.equipment}, {d.bg.gold} GM</p>
             </button>
             <button className="choice" data-active={c.equipmentChoice === "GP"} onClick={() => chooseEquip("GP")}>
-              <b>Option B</b><p className="text-xs text-muted-foreground">50 GP</p>
+              <b>Option B</b><p className="text-xs text-muted-foreground">50 GM</p>
             </button>
           </div>
         )}
@@ -223,15 +236,15 @@ function SkillStep({ c, set }: P) {
           <select className="field" value={c.armorId} onChange={(e) => set({ armorId: e.target.value })}>
             <option value="">Keine Rüstung</option>
             {ARMORS.map((a) => (
-              <option key={a.id} value={a.id}>{a.name} (AC {a.base}, {a.type}){cls && !cls.armor.includes(a.type) ? " – keine Proficiency" : ""}</option>
+              <option key={a.id} value={a.id}>{a.name} (RK {a.base}, {ARMOR_TYPE_DE[a.type]}){cls && !cls.armor.includes(a.type) ? " – keine Übung" : ""}</option>
             ))}
           </select>
         </label>
         <label className="flex items-end gap-2 pb-2 text-sm">
           <input type="checkbox" checked={c.shield} onChange={(e) => set({ shield: e.target.checked })} />
-          Shield (+2 AC){cls && !cls.shield ? " – keine Proficiency" : ""}
+          Schild (+2 RK){cls && !cls.shield ? " – keine Übung" : ""}
         </label>
-        <p className="text-sm text-muted-foreground sm:col-span-2">Aktuelle AC: <b className="text-primary">{d.ac}</b>{cls && ` · Waffen: ${cls.weapons}`}</p>
+        <p className="text-sm text-muted-foreground sm:col-span-2">Aktuelle RK: <b className="text-primary">{d.ac}</b>{cls && ` · Waffen: ${cls.weapons}`}</p>
         <label className="space-y-1 sm:col-span-2"><span className="label">Inventar</span>
           <textarea className="field min-h-28" value={c.inventory} onChange={(e) => set({ inventory: e.target.value })} />
         </label>
@@ -246,10 +259,10 @@ function DetailStep({ c, set }: P) {
       <label className="space-y-1"><span className="label">Name</span>
         <input className="field" value={c.name} onChange={(e) => set({ name: e.target.value })} placeholder="z. B. Thalia Sturmwind" />
       </label>
-      <label className="space-y-1"><span className="label">Gesinnung (Alignment)</span>
+      <label className="space-y-1"><span className="label">Gesinnung</span>
         <select className="field" value={c.alignment} onChange={(e) => set({ alignment: e.target.value })}>
           <option value="">—</option>
-          {ALIGNMENTS.map((a) => <option key={a}>{a}</option>)}
+          {ALIGNMENTS.map((a) => <option key={a} value={a}>{alignmentName(a)}</option>)}
         </select>
       </label>
       <label className="space-y-1 sm:col-span-2"><span className="label">Aussehen</span>

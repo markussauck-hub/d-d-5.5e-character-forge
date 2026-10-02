@@ -1,123 +1,130 @@
 export interface Species {
   id: string;
   name: string;
+  /** Interne Größen-Schlüssel ("Medium", "Small"), Anzeige über sizeName(). */
   sizes: string[];
   speed: number;
   traits: { name: string; text: string }[];
   optionLabel?: string;
-  options?: { name: string; text: string; speed?: number }[];
+  /** `name` ist der gespeicherte Schlüssel (englisch), `label` die deutsche Anzeige. */
+  options?: { name: string; label: string; text: string; speed?: number }[];
 }
 
 export const SPECIES: Species[] = [
   {
-    id: "dragonborn", name: "Dragonborn", sizes: ["Medium"], speed: 30,
+    id: "dragonborn", name: "Drachenblütiger", sizes: ["Medium"], speed: 30,
     traits: [
-      { name: "Draconic Ancestry", text: "Wähle einen Drachentyp; er bestimmt Schadensart von Breath Weapon und Damage Resistance." },
-      { name: "Breath Weapon", text: "Ersetzt einen Angriff: 15-ft-Kegel oder 30-ft-Linie, DEX-Save, 1d10 Schaden (steigt mit Level). Anwendungen = Proficiency Bonus pro Long Rest." },
-      { name: "Damage Resistance", text: "Resistenz gegen die Schadensart deiner Draconic Ancestry." },
-      { name: "Darkvision", text: "60 ft." },
-      { name: "Draconic Flight", text: "Ab Level 5: Bonusaktion für 10 Minuten Flugbewegung gleich deiner Speed, 1× pro Long Rest." },
+      { name: "Drachenabstammung", text: "Wähle eine Drachenart; sie bestimmt die Schadensart von Odemwaffe und Schadensresistenz." },
+      { name: "Odemwaffe", text: "Ersetzt einen Angriff: 15-ft-Kegel oder 30-ft-Linie, GE-Rettungswurf, 1W10 Schaden (steigt mit der Stufe). Anwendungen = Übungsbonus pro Langer Rast." },
+      { name: "Schadensresistenz", text: "Resistenz gegen die Schadensart deiner Drachenabstammung." },
+      { name: "Dunkelsicht", text: "60 ft." },
+      { name: "Drakonischer Flug", text: "Ab Stufe 5: Bonusaktion für 10 Minuten Flugbewegung in Höhe deiner Bewegungsrate, 1× pro Langer Rast." },
     ],
-    optionLabel: "Draconic Ancestry",
+    optionLabel: "Drachenabstammung",
     options: ([
-      ["Black", "Acid"], ["Blue", "Lightning"], ["Brass", "Fire"], ["Bronze", "Lightning"], ["Copper", "Acid"],
-      ["Gold", "Fire"], ["Green", "Poison"], ["Red", "Fire"], ["Silver", "Cold"], ["White", "Cold"],
-    ] as [string, string][]).map(([n, d]) => ({ name: n, text: `Schadensart: ${d}` })),
+      ["Black", "Schwarz", "Säure"], ["Blue", "Blau", "Blitz"], ["Brass", "Messing", "Feuer"], ["Bronze", "Bronze", "Blitz"],
+      ["Copper", "Kupfer", "Säure"], ["Gold", "Gold", "Feuer"], ["Green", "Grün", "Gift"], ["Red", "Rot", "Feuer"],
+      ["Silver", "Silber", "Kälte"], ["White", "Weiß", "Kälte"],
+    ] as [string, string, string][]).map(([n, l, d]) => ({ name: n, label: l, text: `Schadensart: ${d}` })),
   },
   {
-    id: "dwarf", name: "Dwarf", sizes: ["Medium"], speed: 30,
+    id: "dwarf", name: "Zwerg", sizes: ["Medium"], speed: 30,
     traits: [
-      { name: "Darkvision", text: "120 ft." },
-      { name: "Dwarven Resilience", text: "Resistenz gegen Poison-Schaden; Advantage auf Saves gegen Poisoned." },
-      { name: "Dwarven Toughness", text: "Max HP +1 pro Level (automatisch eingerechnet)." },
-      { name: "Stonecunning", text: "Bonusaktion: 10 Minuten Tremorsense 60 ft auf/in Stein. Anwendungen = Proficiency Bonus pro Long Rest." },
+      { name: "Dunkelsicht", text: "120 ft." },
+      { name: "Zwergische Widerstandskraft", text: "Resistenz gegen Giftschaden; Vorteil auf Rettungswürfe gegen den Zustand Vergiftet." },
+      { name: "Zwergische Zähigkeit", text: "Maximale TP +1 pro Stufe (automatisch eingerechnet)." },
+      { name: "Steingespür", text: "Bonusaktion: 10 Minuten Erschütterungssinn 60 ft auf/in Stein. Anwendungen = Übungsbonus pro Langer Rast." },
     ],
   },
   {
     id: "elf", name: "Elf", sizes: ["Medium"], speed: 30,
     traits: [
-      { name: "Darkvision", text: "60 ft." },
-      { name: "Elven Lineage", text: "Wähle eine Lineage mit eigenen Vorteilen und Zaubern." },
-      { name: "Fey Ancestry", text: "Advantage auf Saves gegen Charmed." },
-      { name: "Keen Senses", text: "Proficiency in Insight, Perception oder Survival." },
-      { name: "Trance", text: "Long Rest in 4 Stunden meditativer Trance." },
+      { name: "Dunkelsicht", text: "60 ft." },
+      { name: "Elfische Abstammung", text: "Wähle eine Abstammungslinie mit eigenen Vorteilen und Zaubern." },
+      { name: "Feenblut", text: "Vorteil auf Rettungswürfe gegen den Zustand Bezaubert." },
+      { name: "Geschärfte Sinne", text: "Übung in Motiv erkennen, Wahrnehmung oder Überlebenskunst." },
+      { name: "Trance", text: "Lange Rast in 4 Stunden meditativer Trance." },
     ],
-    optionLabel: "Elven Lineage",
+    optionLabel: "Elfische Abstammung",
     options: [
-      { name: "Drow", text: "Darkvision 120 ft; Dancing Lights, später Faerie Fire und Darkness." },
-      { name: "High Elf", text: "Prestidigitation (austauschbar), später Detect Magic und Misty Step." },
-      { name: "Wood Elf", text: "Speed 35 ft; Druidcraft, später Longstrider und Pass without Trace.", speed: 35 },
+      { name: "Drow", label: "Drow", text: "Dunkelsicht 120 ft; Tanzende Lichter, später Feenfeuer und Dunkelheit." },
+      { name: "High Elf", label: "Hochelf", text: "Taschenspielerei (austauschbar), später Magie entdecken und Nebelschritt." },
+      { name: "Wood Elf", label: "Waldelf", text: "Bewegungsrate 35 ft; Druidenkunst, später Schritte beschleunigen und Spurloses Gehen.", speed: 35 },
     ],
   },
   {
-    id: "gnome", name: "Gnome", sizes: ["Small"], speed: 30,
+    id: "gnome", name: "Gnom", sizes: ["Small"], speed: 30,
     traits: [
-      { name: "Darkvision", text: "60 ft." },
-      { name: "Gnomish Cunning", text: "Advantage auf INT-, WIS- und CHA-Saves." },
-      { name: "Gnomish Lineage", text: "Wähle eine Lineage." },
+      { name: "Dunkelsicht", text: "60 ft." },
+      { name: "Gnomische Gerissenheit", text: "Vorteil auf IN-, WE- und CH-Rettungswürfe." },
+      { name: "Gnomische Abstammung", text: "Wähle eine Abstammungslinie." },
     ],
-    optionLabel: "Gnomish Lineage",
+    optionLabel: "Gnomische Abstammung",
     options: [
-      { name: "Forest Gnome", text: "Minor Illusion; Speak with Animals (Proficiency Bonus × pro Long Rest)." },
-      { name: "Rock Gnome", text: "Mending und Prestidigitation; kleine Uhrwerk-Geräte bauen." },
+      { name: "Forest Gnome", label: "Waldgnom", text: "Kleine Illusion; Mit Tieren sprechen (Übungsbonus × pro Langer Rast)." },
+      { name: "Rock Gnome", label: "Felsgnom", text: "Ausbessern und Taschenspielerei; kleine Uhrwerk-Geräte bauen." },
     ],
   },
   {
     id: "goliath", name: "Goliath", sizes: ["Medium"], speed: 35,
     traits: [
-      { name: "Giant Ancestry", text: "Wähle eine übernatürliche Gabe; Anwendungen = Proficiency Bonus pro Long Rest." },
-      { name: "Large Form", text: "Ab Level 5: Bonusaktion, 10 Minuten Large, Advantage auf STR-Checks, +10 ft Speed." },
-      { name: "Powerful Build", text: "Advantage gegen Grappled beenden; Tragkraft wie eine Größe größer." },
+      { name: "Riesenabstammung", text: "Wähle eine übernatürliche Gabe; Anwendungen = Übungsbonus pro Langer Rast." },
+      { name: "Große Gestalt", text: "Ab Stufe 5: Bonusaktion, 10 Minuten Größe Groß, Vorteil auf ST-Würfe, +10 ft Bewegungsrate." },
+      { name: "Kräftiger Körperbau", text: "Vorteil, um den Zustand Gepackt zu beenden; Tragkraft wie eine Größenkategorie größer." },
     ],
-    optionLabel: "Giant Ancestry",
+    optionLabel: "Riesenabstammung",
     options: [
-      { name: "Cloud's Jaunt", text: "Bonusaktion: Teleport bis 30 ft." },
-      { name: "Fire's Burn", text: "Bei Treffer +1d10 Fire-Schaden." },
-      { name: "Frost's Chill", text: "Bei Treffer +1d6 Cold-Schaden und −10 ft Speed." },
-      { name: "Hill's Tumble", text: "Bei Treffer Ziel (Large oder kleiner) Prone." },
-      { name: "Stone's Endurance", text: "Reaktion: Schaden um 1d12 + CON-Mod reduzieren." },
-      { name: "Storm's Thunder", text: "Reaktion: 1d8 Thunder-Schaden an Angreifer in 60 ft." },
+      { name: "Cloud's Jaunt", label: "Wolkensprung", text: "Bonusaktion: Teleport bis 30 ft." },
+      { name: "Fire's Burn", label: "Feuersglut", text: "Bei Treffer +1W10 Feuerschaden." },
+      { name: "Frost's Chill", label: "Frostkälte", text: "Bei Treffer +1W6 Kälteschaden und −10 ft Bewegungsrate." },
+      { name: "Hill's Tumble", label: "Hügelsturz", text: "Bei Treffer wird ein Ziel (Groß oder kleiner) liegend." },
+      { name: "Stone's Endurance", label: "Steinerne Ausdauer", text: "Reaktion: Schaden um 1W12 + KO-Modifikator verringern." },
+      { name: "Storm's Thunder", label: "Sturmdonner", text: "Reaktion: 1W8 Schallschaden an einen Angreifer innerhalb von 60 ft." },
     ],
   },
   {
-    id: "halfling", name: "Halfling", sizes: ["Small"], speed: 30,
+    id: "halfling", name: "Halbling", sizes: ["Small"], speed: 30,
     traits: [
-      { name: "Brave", text: "Advantage auf Saves gegen Frightened." },
-      { name: "Halfling Nimbleness", text: "Durch den Raum größerer Kreaturen bewegen." },
-      { name: "Luck", text: "Eine 1 auf dem d20-Test neu würfeln." },
-      { name: "Naturally Stealthy", text: "Hide-Aktion möglich, wenn von größerer Kreatur verdeckt." },
+      { name: "Mutig", text: "Vorteil auf Rettungswürfe gegen den Zustand Verängstigt." },
+      { name: "Halblingsgewandtheit", text: "Du kannst dich durch den Bereich größerer Kreaturen bewegen." },
+      { name: "Glück", text: "Eine gewürfelte 1 bei einem W20-Test neu würfeln." },
+      { name: "Natürlich verstohlen", text: "Verstecken-Aktion möglich, wenn du von einer größeren Kreatur verdeckt bist." },
     ],
   },
   {
-    id: "human", name: "Human", sizes: ["Medium", "Small"], speed: 30,
+    id: "human", name: "Mensch", sizes: ["Medium", "Small"], speed: 30,
     traits: [
-      { name: "Resourceful", text: "Heroic Inspiration nach jedem Long Rest." },
-      { name: "Skillful", text: "Proficiency in einer Fertigkeit deiner Wahl." },
-      { name: "Versatile", text: "Ein zusätzliches Origin Feat deiner Wahl (z. B. Skilled)." },
+      { name: "Einfallsreich", text: "Heroische Inspiration nach jeder Langen Rast." },
+      { name: "Geschickt", text: "Übung in einer Fertigkeit deiner Wahl." },
+      { name: "Vielseitig", text: "Ein zusätzliches Herkunftstalent deiner Wahl (z. B. Geübt)." },
     ],
   },
   {
-    id: "orc", name: "Orc", sizes: ["Medium"], speed: 30,
+    id: "orc", name: "Ork", sizes: ["Medium"], speed: 30,
     traits: [
-      { name: "Adrenaline Rush", text: "Bonusaktion Dash + Temp HP = Proficiency Bonus. Anwendungen = Proficiency Bonus pro Short/Long Rest." },
-      { name: "Darkvision", text: "120 ft." },
-      { name: "Relentless Endurance", text: "Fällt auf 1 HP statt 0, 1× pro Long Rest." },
+      { name: "Adrenalinschub", text: "Bonusaktion Spurten + temporäre TP in Höhe des Übungsbonus. Anwendungen = Übungsbonus pro Kurzer/Langer Rast." },
+      { name: "Dunkelsicht", text: "120 ft." },
+      { name: "Unermüdliche Ausdauer", text: "Fällt auf 1 TP statt auf 0, 1× pro Langer Rast." },
     ],
   },
   {
     id: "tiefling", name: "Tiefling", sizes: ["Medium", "Small"], speed: 30,
     traits: [
-      { name: "Darkvision", text: "60 ft." },
-      { name: "Fiendish Legacy", text: "Wähle eine Legacy mit Resistenz und Zaubern." },
-      { name: "Otherworldly Presence", text: "Thaumaturgy-Cantrip." },
+      { name: "Dunkelsicht", text: "60 ft." },
+      { name: "Unholdisches Vermächtnis", text: "Wähle ein Vermächtnis mit Resistenz und Zaubern." },
+      { name: "Außerweltliche Präsenz", text: "Zaubertrick Thaumaturgie." },
     ],
-    optionLabel: "Fiendish Legacy",
+    optionLabel: "Unholdisches Vermächtnis",
     options: [
-      { name: "Abyssal", text: "Poison-Resistenz; Poison Spray, später Ray of Sickness und Hold Person." },
-      { name: "Chthonic", text: "Necrotic-Resistenz; Chill Touch, später False Life und Ray of Enfeeblement." },
-      { name: "Infernal", text: "Fire-Resistenz; Fire Bolt, später Hellish Rebuke und Darkness." },
+      { name: "Abyssal", label: "Abyssisch", text: "Giftresistenz; Giftspritzer, später Strahl der Übelkeit und Person festhalten." },
+      { name: "Chthonic", label: "Chthonisch", text: "Nekrotische Resistenz; Kalte Hand, später Falsches Leben und Schwächestrahl." },
+      { name: "Infernal", label: "Infernalisch", text: "Feuerresistenz; Feuerpfeil, später Höllischer Tadel und Dunkelheit." },
     ],
   },
 ];
 
 export const getSpecies = (id?: string) => SPECIES.find((s) => s.id === id);
+
+/** Deutscher Anzeigename der gewählten Spezies-Option (gespeichert wird der englische Schlüssel). */
+export const speciesOptionLabel = (sp: Species | undefined, key?: string) =>
+  sp?.options?.find((o) => o.name === key)?.label ?? key;

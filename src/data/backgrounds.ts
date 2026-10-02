@@ -5,6 +5,7 @@ export interface Background {
   name: string;
   abilities: [Ab, Ab, Ab];
   feat: string;
+  /** Interne (englische) Fertigkeitsschlüssel, Anzeige über skillName(). */
   skills: [string, string];
   tool: string;
   equipment: string;
@@ -13,32 +14,32 @@ export interface Background {
 
 export const BACKGROUNDS: Background[] = [
   {
-    id: "acolyte", name: "Acolyte", abilities: ["INT", "WIS", "CHA"], feat: "Magic Initiate (Cleric)",
-    skills: ["Insight", "Religion"], tool: "Calligrapher's Supplies",
-    equipment: "Calligrapher's Supplies, Book (prayers), Holy Symbol, Parchment (10 sheets), Robe", gold: 8,
+    id: "acolyte", name: "Akolyth", abilities: ["INT", "WIS", "CHA"], feat: "Magie-Eingeweihter (Kleriker)",
+    skills: ["Insight", "Religion"], tool: "Kalligrafenwerkzeug",
+    equipment: "Kalligrafenwerkzeug, Buch (Gebete), Heiliges Symbol, Pergament (10 Blatt), Robe", gold: 8,
   },
   {
-    id: "criminal", name: "Criminal", abilities: ["DEX", "CON", "INT"], feat: "Alert",
-    skills: ["Sleight of Hand", "Stealth"], tool: "Thieves' Tools",
-    equipment: "2 Daggers, Thieves' Tools, Crowbar, 2 Pouches, Traveler's Clothes", gold: 16,
+    id: "criminal", name: "Krimineller", abilities: ["DEX", "CON", "INT"], feat: "Aufmerksam",
+    skills: ["Sleight of Hand", "Stealth"], tool: "Diebeswerkzeug",
+    equipment: "2 Dolche, Diebeswerkzeug, Brecheisen, 2 Beutel, Reisekleidung", gold: 16,
   },
   {
-    id: "sage", name: "Sage", abilities: ["CON", "INT", "WIS"], feat: "Magic Initiate (Wizard)",
-    skills: ["Arcana", "History"], tool: "Calligrapher's Supplies",
-    equipment: "Quarterstaff, Calligrapher's Supplies, Book (history), Parchment (8 sheets), Robe", gold: 8,
+    id: "sage", name: "Weiser", abilities: ["CON", "INT", "WIS"], feat: "Magie-Eingeweihter (Magier)",
+    skills: ["Arcana", "History"], tool: "Kalligrafenwerkzeug",
+    equipment: "Kampfstab, Kalligrafenwerkzeug, Buch (Geschichte), Pergament (8 Blatt), Robe", gold: 8,
   },
   {
-    id: "soldier", name: "Soldier", abilities: ["STR", "DEX", "CON"], feat: "Savage Attacker",
-    skills: ["Athletics", "Intimidation"], tool: "Gaming Set (eine Art wählen)",
-    equipment: "Spear, Shortbow, 20 Arrows, Gaming Set, Healer's Kit, Quiver, Traveler's Clothes", gold: 14,
+    id: "soldier", name: "Soldat", abilities: ["STR", "DEX", "CON"], feat: "Wilder Angreifer",
+    skills: ["Athletics", "Intimidation"], tool: "Spielset (eine Art wählen)",
+    equipment: "Speer, Kurzbogen, 20 Pfeile, Spielset, Heilerausrüstung, Köcher, Reisekleidung", gold: 14,
   },
 ];
 
 export const getBackground = (id?: string) => BACKGROUNDS.find((b) => b.id === id);
 
 export const ORIGIN_FEATS = [
-  { name: "Alert", text: "Proficiency Bonus auf Initiative (automatisch eingerechnet); Initiative mit einem willigen Verbündeten tauschen." },
-  { name: "Magic Initiate", text: "Zwei Cantrips und ein Level-1-Zauber aus der Cleric-, Druid- oder Wizard-Liste; Zauber 1× pro Long Rest ohne Slot." },
-  { name: "Savage Attacker", text: "Einmal pro Zug Waffenschadenswürfel zweimal würfeln und den höheren Wert nehmen." },
-  { name: "Skilled", text: "Proficiency in drei beliebigen Kombinationen aus Skills oder Tools. Wiederholbar." },
+  { name: "Aufmerksam", text: "Übungsbonus auf Initiative (automatisch eingerechnet); Initiative mit einem willigen Verbündeten tauschen." },
+  { name: "Magie-Eingeweihter", text: "Zwei Zaubertricks und ein Zauber des 1. Grades aus der Kleriker-, Druiden- oder Magier-Liste; den Zauber 1× pro Langer Rast ohne Zauberplatz wirken." },
+  { name: "Wilder Angreifer", text: "Einmal pro Zug die Schadenswürfel einer Waffe zweimal würfeln und den höheren Wert nehmen." },
+  { name: "Geübt", text: "Übung in drei beliebigen Kombinationen aus Fertigkeiten oder Werkzeugen. Mehrfach wählbar." },
 ];

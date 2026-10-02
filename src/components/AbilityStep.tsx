@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { ABILITIES, AB_NAMES, POINT_COST, STANDARD_ARRAY, type Ab } from "@/data/rules";
+import { ABILITIES, AB_NAMES, AB_SHORT, POINT_COST, STANDARD_ARRAY, type Ab } from "@/data/rules";
 import { getBackground } from "@/data/backgrounds";
-import { bgBonus, computedScore, fmt, mod, type Character, type Method } from "@/lib/character";
+import { abilityIssues, bgBonus, computedScore, fmt, mod, type Character, type Method } from "@/lib/character";
 
 const d6 = () => 1 + Math.floor(Math.random() * 6);
 
@@ -12,6 +12,7 @@ export function AbilityStep({ c, set }: { c: Character; set: (p: Partial<Charact
   const pool = c.method === "standard" ? STANDARD_ARRAY : c.rolled;
   const spent = ABILITIES.reduce((s, a) => s + (POINT_COST[c.baseScores[a]] ?? 0), 0);
   const bonus = bgBonus(c);
+  const issues = abilityIssues(c);
 
   const setMethod = (m: Method) => {
     const base = { STR: 8, DEX: 8, CON: 8, INT: 8, WIS: 8, CHA: 8 };
@@ -44,7 +45,7 @@ export function AbilityStep({ c, set }: { c: Character; set: (p: Partial<Charact
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap gap-2">
-        {([["standard", "Standard Array"], ["pointbuy", "Point Buy"], ["roll", "Würfeln (4d6)"]] as const).map(([m, l]) => (
+        {([["standard", "Standardreihe"], ["pointbuy", "Punktekauf"], ["roll", "Würfeln (4W6)"]] as const).map(([m, l]) => (
           <button key={m} className={`btn ${c.method === m ? "btn-primary" : ""}`} onClick={() => setMethod(m)}>{l}</button>
         ))}
       </div>
@@ -74,6 +75,12 @@ export function AbilityStep({ c, set }: { c: Character; set: (p: Partial<Charact
         </div>
       )}
 
+      {issues.length > 0 && (
+        <div className="rounded-lg border border-ember bg-ember/10 p-3 text-sm">
+          {issues.map((i) => <p key={i}>⚠ {i}</p>)}
+        </div>
+      )}
+
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {ABILITIES.map((a) => {
           const total = computedScore(c, a);
@@ -81,7 +88,7 @@ export function AbilityStep({ c, set }: { c: Character; set: (p: Partial<Charact
             <div key={a} className="panel">
               <div className="flex items-baseline justify-between">
                 <span className="font-display font-bold">{AB_NAMES[a]}</span>
-                <span className="label">{a}</span>
+                <span className="label">{AB_SHORT[a]}</span>
               </div>
               <div className="mt-2">
                 {c.method === "pointbuy" ? (
@@ -102,7 +109,7 @@ export function AbilityStep({ c, set }: { c: Character; set: (p: Partial<Charact
                 )}
               </div>
               <div className="mt-3 flex items-baseline justify-between text-sm">
-                <span className="text-muted-foreground">{bonus[a] ? `Background ${fmt(bonus[a])}` : ""}</span>
+                <span className="text-muted-foreground">{bonus[a] ? `Hintergrund ${fmt(bonus[a])}` : ""}</span>
                 <span><b className="text-xl text-primary">{total}</b> <span className="text-muted-foreground">({fmt(mod(total))})</span></span>
               </div>
             </div>
@@ -111,9 +118,9 @@ export function AbilityStep({ c, set }: { c: Character; set: (p: Partial<Charact
       </div>
 
       <div className="panel space-y-3">
-        <h3 className="font-bold">Background-Bonus {bg ? `(${bg.name}: ${bg.abilities.join(", ")})` : ""}</h3>
+        <h3 className="font-bold">Hintergrund-Bonus {bg ? `(${bg.name}: ${bg.abilities.map((a) => AB_SHORT[a]).join(", ")})` : ""}</h3>
         {!bg ? (
-          <p className="text-sm text-muted-foreground">Wähle zuerst einen Background.</p>
+          <p className="text-sm text-muted-foreground">Wähle zuerst einen Hintergrund.</p>
         ) : (
           <>
             <div className="flex gap-2">

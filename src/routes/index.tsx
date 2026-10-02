@@ -83,7 +83,7 @@ function Index() {
                 <button className="btn btn-sm" onClick={() => saveCharacter({ ...structuredClone(c), id: crypto.randomUUID(), name: `${c.name || "Unbenannt"} (Kopie)` })}>
                   Duplizieren
                 </button>
-                <button className="btn btn-sm" onClick={() => download(`${c.name || "charakter"}.json`, c)}>Export</button>
+                <button className="btn btn-sm" onClick={() => download(`${c.name || "charakter"}.json`, c)}>Exportieren</button>
                 <button className="btn btn-danger btn-sm" onClick={() => confirm(`„${c.name || "Unbenannt"}“ löschen?`) && deleteCharacter(c.id)}>
                   Löschen
                 </button>

@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { ABILITIES, ARMORS, SKILLS, type Ab } from "@/data/rules";
+import { ABILITIES, ARMORS, POINT_COST, SKILLS, type Ab } from "@/data/rules";
 import { getClass, spellSlots } from "@/data/classes";
 import { getBackground } from "@/data/backgrounds";
 import { getSpecies } from "@/data/species";
@@ -136,6 +136,23 @@ export function computedScore(c: Character, a: Ab) {
   return Math.min(20, c.baseScores[a] + bgBonus(c)[a] + (c.asi[a] ?? 0));
 }
 
+/** Offene Punkte bei den Attributen – leer, wenn alles vollständig ist. */
+export function abilityIssues(c: Character): string[] {
+  const issues: string[] = [];
+  if (c.method === "pointbuy") {
+    const spent = ABILITIES.reduce((s, a) => s + (POINT_COST[c.baseScores[a]] ?? 0), 0);
+    if (spent === 0) issues.push("Beim Punktekauf wurden noch keine Punkte verteilt.");
+  } else if (c.method === "roll" && !c.rolled.length) {
+    issues.push("Es wurde noch nicht gewürfelt.");
+  } else if (ABILITIES.some((a) => c.assign[a] < 0)) {
+    issues.push("Nicht alle Attributwerte sind zugewiesen (Grundwert 8 wird verwendet).");
+  }
+  if (getBackground(c.backgroundId) && c.bgMode === "21" && (!c.bgPlus2 || !c.bgPlus1)) {
+    issues.push("Der Hintergrund-Bonus (+2 / +1) ist noch nicht verteilt.");
+  }
+  return issues;
+}
+
 export function derive(c: Character) {
   const cls = getClass(c.classId);
   const bg = getBackground(c.backgroundId);
@@ -161,7 +178,7 @@ export function derive(c: Character) {
   });
   const perception = skills.find((s) => s.name === "Perception")!;
   const passive = ov(c, "passive", 10 + perception.v);
-  const alert = bg?.feat === "Alert" || c.feats.some((f) => /alert/i.test(f));
+  const alert = bg?.feat === "Aufmerksam" || c.feats.some((f) => /alert|aufmerksam/i.test(f));
   const initiative = ov(c, "init", mods.DEX + (alert ? pb : 0));
 
   const hd = cls?.hitDie ?? 8;
