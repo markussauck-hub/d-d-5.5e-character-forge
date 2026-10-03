@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { ABILITIES, AB_NAMES, AB_SHORT, POINT_COST, STANDARD_ARRAY, type Ab } from "@/data/rules";
-import { getBackground } from "@/data/backgrounds";
-import { abilityIssues, bgBonus, computedScore, fmt, mod, type Character, type Method } from "@/lib/character";
+import { backgroundOf, speciesOf } from "@/data/edition";
+import { abilityIssues, bgBonus, computedScore, raceBonus, fmt, mod, type Character, type Method } from "@/lib/character";
 
 const d6 = () => 1 + Math.floor(Math.random() * 6);
 
 export function AbilityStep({ c, set }: { c: Character; set: (p: Partial<Character>) => void }) {
   const [rolling, setRolling] = useState(false);
   const [dice, setDice] = useState<number[][]>([]);
-  const bg = getBackground(c.backgroundId);
+  const bg = backgroundOf(c);
+  const sp = speciesOf(c);
+  const race = raceBonus(c);
   const pool = c.method === "standard" ? STANDARD_ARRAY : c.rolled;
   const spent = ABILITIES.reduce((s, a) => s + (POINT_COST[c.baseScores[a]] ?? 0), 0);
   const bonus = bgBonus(c);
@@ -109,7 +111,7 @@ export function AbilityStep({ c, set }: { c: Character; set: (p: Partial<Charact
                 )}
               </div>
               <div className="mt-3 flex items-baseline justify-between text-sm">
-                <span className="text-muted-foreground">{bonus[a] ? `Hintergrund ${fmt(bonus[a])}` : ""}</span>
+                <span className="text-muted-foreground">{[bonus[a] ? `Hintergrund ${fmt(bonus[a])}` : "", race[a] ? `Volk ${fmt(race[a])}` : ""].filter(Boolean).join(" · ")}</span>
                 <span><b className="text-xl text-primary">{total}</b> <span className="text-muted-foreground">({fmt(mod(total))})</span></span>
               </div>
             </div>
@@ -117,36 +119,67 @@ export function AbilityStep({ c, set }: { c: Character; set: (p: Partial<Charact
         })}
       </div>
 
-      <div className="panel space-y-3">
-        <h3 className="font-bold">Hintergrund-Bonus {bg ? `(${bg.name}: ${bg.abilities.map((a) => AB_SHORT[a]).join(", ")})` : ""}</h3>
-        {!bg ? (
-          <p className="text-sm text-muted-foreground">Wähle zuerst einen Hintergrund.</p>
-        ) : (
-          <>
-            <div className="flex gap-2">
-              <button className={`btn btn-sm ${c.bgMode === "21" ? "btn-primary" : ""}`} onClick={() => set({ bgMode: "21" })}>+2 / +1</button>
-              <button className={`btn btn-sm ${c.bgMode === "111" ? "btn-primary" : ""}`} onClick={() => set({ bgMode: "111" })}>+1 / +1 / +1</button>
-            </div>
-            {c.bgMode === "21" && (
-              <div className="grid max-w-md grid-cols-2 gap-3">
-                <label className="space-y-1"><span className="label">+2 auf</span>
-                  <select className="field" value={c.bgPlus2 ?? ""} onChange={(e) => set({ bgPlus2: e.target.value as Ab })}>
-                    <option value="">—</option>
-                    {bg.abilities.map((a) => <option key={a} value={a}>{AB_NAMES[a]}</option>)}
-                  </select>
-                </label>
-                <label className="space-y-1"><span className="label">+1 auf</span>
-                  <select className="field" value={c.bgPlus1 ?? ""} onChange={(e) => set({ bgPlus1: e.target.value as Ab })}>
-                    <option value="">—</option>
-                    {bg.abilities.filter((a) => a !== c.bgPlus2).map((a) => <option key={a} value={a}>{AB_NAMES[a]}</option>)}
-                  </select>
-                </label>
+      {c.edition === "2014" ? (
+        <div className="panel space-y-3">
+          <h3 className="font-bold">Volksbonus {sp ? `(${sp.name})` : ""}</h3>
+          {!sp ? <p className="text-sm text-muted-foreground">Wähle zuerst ein Volk.</p> : (
+            <>
+              <p className="text-sm">
+                {Object.entries(sp.bonuses ?? {}).map(([a, v]) => `${AB_NAMES[a as Ab]} ${fmt(v)}`).join(", ") || "Keine festen Boni"}
+              </p>
+              {sp.chooseBonus && (
+                <div className="space-y-1">
+                  <p className="label">Zusätzlich {sp.chooseBonus.count}× {fmt(sp.chooseBonus.amount)} auf andere Attribute</p>
+                  <div className="flex flex-wrap gap-2">
+                    {ABILITIES.filter((a) => !sp.chooseBonus!.exclude.includes(a)).map((a) => {
+                      const on = c.raceBonusChoice.includes(a);
+                      const full = !on && c.raceBonusChoice.length >= sp.chooseBonus!.count;
+                      return (
+                        <button key={a} disabled={full} className={`btn btn-sm ${on ? "btn-primary" : ""}`}
+                          onClick={() => set({ raceBonusChoice: on ? c.raceBonusChoice.filter((x) => x !== a) : [...c.raceBonusChoice, a] })}>
+                          {AB_NAMES[a]}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground">Kein Attribut kann über 20 steigen.</p>
+            </>
+          )}
+        </div>
+      ) : (
+        <div className="panel space-y-3">
+          <h3 className="font-bold">Hintergrund-Bonus {bg?.abilities ? `(${bg.name}: ${bg.abilities!.map((a) => AB_SHORT[a]).join(", ")})` : ""}</h3>
+          {!bg?.abilities ? (
+            <p className="text-sm text-muted-foreground">Wähle zuerst einen Hintergrund.</p>
+          ) : (
+            <>
+              <div className="flex gap-2">
+                <button className={`btn btn-sm ${c.bgMode === "21" ? "btn-primary" : ""}`} onClick={() => set({ bgMode: "21" })}>+2 / +1</button>
+                <button className={`btn btn-sm ${c.bgMode === "111" ? "btn-primary" : ""}`} onClick={() => set({ bgMode: "111" })}>+1 / +1 / +1</button>
               </div>
-            )}
-            <p className="text-xs text-muted-foreground">Kein Attribut kann über 20 steigen.</p>
-          </>
-        )}
-      </div>
+              {c.bgMode === "21" && (
+                <div className="grid max-w-md grid-cols-2 gap-3">
+                  <label className="space-y-1"><span className="label">+2 auf</span>
+                    <select className="field" value={c.bgPlus2 ?? ""} onChange={(e) => set({ bgPlus2: e.target.value as Ab })}>
+                      <option value="">—</option>
+                      {bg.abilities!.map((a) => <option key={a} value={a}>{AB_NAMES[a]}</option>)}
+                    </select>
+                  </label>
+                  <label className="space-y-1"><span className="label">+1 auf</span>
+                    <select className="field" value={c.bgPlus1 ?? ""} onChange={(e) => set({ bgPlus1: e.target.value as Ab })}>
+                      <option value="">—</option>
+                      {bg.abilities!.filter((a) => a !== c.bgPlus2).map((a) => <option key={a} value={a}>{AB_NAMES[a]}</option>)}
+                    </select>
+                  </label>
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground">Kein Attribut kann über 20 steigen.</p>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }

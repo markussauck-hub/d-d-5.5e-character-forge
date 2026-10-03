@@ -1,7 +1,5 @@
 import { ARMORS } from "@/data/rules";
-import { getClass } from "@/data/classes";
-import { getBackground } from "@/data/backgrounds";
-import { getSpecies } from "@/data/species";
+import { backgroundOf, classOf, speciesOf, subclassOf } from "@/data/edition";
 import type { Character } from "@/lib/character";
 
 export type PromptLang = "de" | "en";
@@ -44,6 +42,8 @@ const SPECIES: Record<string, L> = {
   goliath: { de: "Goliath: sehr groß und muskulös, graue steinartige Haut mit dunklen Mustern", en: "goliath: very tall and muscular, grey stone-like skin with dark markings" },
   halfling: { de: "Halbling: klein, rundliches freundliches Gesicht, barfuß", en: "halfling: small, round friendly face, barefoot" },
   human: { de: "Mensch", en: "human" },
+  "half-elf": { de: "Halbelf: leicht spitze Ohren, Züge von Mensch und Elf", en: "half-elf: slightly pointed ears, mix of human and elven features" },
+  "half-orc": { de: "Halbork: kräftig, grünlich-graue Haut, kleine Hauer, markante Stirn", en: "half-orc: powerful build, greenish-grey skin, small tusks, prominent brow" },
   orc: { de: "Ork: kräftig, graugrüne Haut, kleine Hauer im Unterkiefer", en: "orc: powerful build, grey-green skin, small tusks in the lower jaw" },
   tiefling: { de: "Tiefling: Hörner, langer Schwanz, leuchtende Augen ohne Pupillen", en: "tiefling: horns, long tail, glowing pupil-less eyes" },
 };
@@ -85,6 +85,15 @@ const BACKGROUND_LOOK: Record<string, L> = {
   criminal: { de: "Vergangenheit als Krimineller, wachsamer Blick, abgetragene Kleidung", en: "criminal past, wary eyes, worn clothing" },
   sage: { de: "gelehrsame Ausstrahlung, Schriftrollen oder Bücher dabei", en: "scholarly air, carrying scrolls or books" },
   soldier: { de: "militärische Haltung, Spuren eines Soldatenlebens", en: "military bearing, marks of a soldier's life" },
+  charlatan: { de: "gewinnendes, falsches Lächeln, auffällige Kleidung", en: "charming, insincere smile, flashy clothes" },
+  entertainer: { de: "Bühnenkostüm, theatralische Pose", en: "stage costume, theatrical pose" },
+  "folk-hero": { de: "einfache ländliche Kleidung, bodenständig und entschlossen", en: "simple rural clothes, down-to-earth and determined" },
+  "guild-artisan": { de: "Handwerkerschürze, Werkzeug am Gürtel", en: "artisan's apron, tools on the belt" },
+  hermit: { de: "zurückgezogener Einsiedler, abgetragene Kleidung, Kräuterbeutel", en: "reclusive hermit, worn clothes, herb pouch" },
+  noble: { de: "edle Kleidung, Siegelring, stolze Haltung", en: "fine clothes, signet ring, proud bearing" },
+  outlander: { de: "wettergegerbt, Felle und Wildniskleidung", en: "weather-beaten, furs and wilderness clothing" },
+  sailor: { de: "Seemannskleidung, salzzerzauste Haare, Seil über der Schulter", en: "sailor's clothes, salt-tousled hair, rope over the shoulder" },
+  urchin: { de: "Straßenkind, zerlumpte Kleidung, wachsamer Blick", en: "street urchin, ragged clothes, watchful eyes" },
 };
 
 const ARMOR_LOOK: Record<string, L> = {
@@ -103,9 +112,10 @@ const ALIGN_MOOD: Record<string, L> = {
 };
 
 export function buildPortraitPrompt(c: Character, lang: PromptLang, style: PromptStyle, framing: PromptFraming): string {
-  const cls = getClass(c.classId);
-  const sp = getSpecies(c.speciesId);
-  const bg = getBackground(c.backgroundId);
+  const cls = classOf(c);
+  const sp = speciesOf(c);
+  const bg = backgroundOf(c);
+  const sub = cls && c.level >= cls.subclassLevel ? subclassOf(c) : undefined;
   const armor = ARMORS.find((a) => a.id === c.armorId);
   const parts: string[] = [];
 
@@ -121,7 +131,7 @@ export function buildPortraitPrompt(c: Character, lang: PromptLang, style: Promp
   }
   if (cls) {
     parts.push(CLASS[cls.id]?.[lang] ?? cls.name);
-    if (c.hasSubclass) parts.push(lang === "de" ? `Unterklasse: ${cls.subclass}` : `subclass: ${cls.subclass}`);
+    if (sub) parts.push(lang === "de" ? `Unterklasse: ${sub.name}` : `subclass (German name): ${sub.name}`);
   }
   if (bg && BACKGROUND_LOOK[bg.id]) parts.push(BACKGROUND_LOOK[bg.id]![lang]);
   if (armor) parts.push(lang === "de" ? `trägt ${ARMOR_LOOK[armor.id]!.de}` : `wearing ${ARMOR_LOOK[armor.id]!.en}`);

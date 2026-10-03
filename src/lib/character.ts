@@ -1,19 +1,21 @@
 import { useSyncExternalStore } from "react";
 import { ABILITIES, ARMORS, POINT_COST, SKILLS, type Ab } from "@/data/rules";
-import { getClass, spellSlots } from "@/data/classes";
-import { getBackground } from "@/data/backgrounds";
-import { getSpecies } from "@/data/species";
+import { spellSlots } from "@/data/classes";
+import { backgroundOf, classOf, speciesOf, subclassOf, type Edition } from "@/data/edition";
 
 export type Method = "standard" | "pointbuy" | "roll";
 
 export interface Character {
   id: string;
   name: string;
-  classId?: string;
+  /** Regelwerk; ältere Charaktere ohne Angabe sind 5.5e (2024). */
+  edition: Edition;
+  classId?: string | undefined;
   hasSubclass: boolean;
+  subclassId?: string | undefined;
   level: number;
-  backgroundId?: string;
-  speciesId?: string;
+  backgroundId?: string | undefined;
+  speciesId?: string | undefined;
   speciesOption?: string | undefined;
   size?: string | undefined;
   method: Method;
@@ -23,6 +25,10 @@ export interface Character {
   bgMode: "21" | "111";
   bgPlus2?: Ab | undefined;
   bgPlus1?: Ab | undefined;
+  /** 5e (Halbelf): Attribute für die frei wählbaren Volksboni. */
+  raceBonusChoice: Ab[];
+  /** 5e (Halbelf): frei gewählte Fertigkeiten durch das Volk. */
+  raceSkills: string[];
   asi: Record<Ab, number>;
   skillProfs: string[];
   expertise: string[];
@@ -38,7 +44,7 @@ export interface Character {
   exhaustion: number;
   slotsUsed: number[];
   money: { cp: number; sp: number; ep: number; gp: number; pp: number };
-  equipmentChoice?: "A" | "GP";
+  equipmentChoice?: "A" | "GP" | undefined;
   inventory: string;
   spells: string;
   feats: string[];
@@ -52,9 +58,9 @@ const zero = (): Record<Ab, number> => ({ STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0
 const eight = (): Record<Ab, number> => ({ STR: 8, DEX: 8, CON: 8, INT: 8, WIS: 8, CHA: 8 });
 const empty = (): Record<Ab, number> => ({ STR: -1, DEX: -1, CON: -1, INT: -1, WIS: -1, CHA: -1 });
 
-export function newCharacter(): Character {
+export function newCharacter(edition: Edition = "2024"): Character {
   return {
-    id: crypto.randomUUID(), name: "", hasSubclass: false, level: 1, method: "standard",
+    id: crypto.randomUUID(), name: "", edition, hasSubclass: false, raceBonusChoice: [], raceSkills: [], level: 1, method: "standard",
     baseScores: eight(), assign: empty(), rolled: [], bgMode: "21", asi: zero(), skillProfs: [],
     expertise: [], hpRolls: [], armorId: "", shield: false, overrides: {}, currentHp: null, tempHp: 0,
     hitDiceUsed: 0, deathSaves: { s: 0, f: 0 }, conditions: [], exhaustion: 0, slotsUsed: [],
@@ -122,8 +128,8 @@ const ov = (c: Character, key: string, v: number) => c.overrides[key] ?? v;
 
 export function bgBonus(c: Character): Record<Ab, number> {
   const r = zero();
-  const bg = getBackground(c.backgroundId);
-  if (!bg) return r;
+  const bg = backgroundOf(c);
+  if (!bg?.abilities) return r;
   if (c.bgMode === "111") bg.abilities.forEach((a) => (r[a] += 1));
   else {
     if (c.bgPlus2) r[c.bgPlus2] += 2;
@@ -132,8 +138,26 @@ export function bgBonus(c: Character): Record<Ab, number> {
   return r;
 }
 
+/** 5e: Attributboni durch das Volk (fest + frei gewählt). */
+export function raceBonus(c: Character): Record<Ab, number> {
+  const r = zero();
+  const sp = speciesOf(c);
+  if (!sp) return r;
+  for (const [a, v] of Object.entries(sp.bonuses ?? {}) as [Ab, number][]) r[a] += v;
+  if (sp.chooseBonus) {
+    c.raceBonusChoice.filter((a) => !sp.chooseBonus!.exclude.includes(a)).slice(0, sp.chooseBonus.count)
+      .forEach((a) => (r[a] += sp.chooseBonus!.amount));
+  }
+  return r;
+}
+
 export function computedScore(c: Character, a: Ab) {
-  return Math.min(20, c.baseScores[a] + bgBonus(c)[a] + (c.asi[a] ?? 0));
+  return Math.min(20, c.baseScores[a] + bgBonus(c)[a] + raceBonus(c)[a] + (c.asi[a] ?? 0));
+}
+
+/** Fertigkeiten, die fest durch Hintergrund und Volk kommen. */
+export function grantedSkills(c: Character): string[] {
+  return [...(backgroundOf(c)?.skills ?? []), ...(speciesOf(c)?.skills ?? [])];
 }
 
 /** Offene Punkte bei den Attributen – leer, wenn alles vollständig ist. */
@@ -147,26 +171,39 @@ export function abilityIssues(c: Character): string[] {
   } else if (ABILITIES.some((a) => c.assign[a] < 0)) {
     issues.push("Nicht alle Attributwerte sind zugewiesen (Grundwert 8 wird verwendet).");
   }
-  if (getBackground(c.backgroundId) && c.bgMode === "21" && (!c.bgPlus2 || !c.bgPlus1)) {
+  if (backgroundOf(c)?.abilities && c.bgMode === "21" && (!c.bgPlus2 || !c.bgPlus1)) {
     issues.push("Der Hintergrund-Bonus (+2 / +1) ist noch nicht verteilt.");
+  }
+  const sp = speciesOf(c);
+  if (sp?.chooseBonus) {
+    const n = c.raceBonusChoice.filter((a) => !sp.chooseBonus!.exclude.includes(a)).length;
+    if (n < sp.chooseBonus.count) issues.push(`Die freien Volksboni (${sp.name}: ${sp.chooseBonus.count}× +${sp.chooseBonus.amount}) sind noch nicht verteilt.`);
   }
   return issues;
 }
 
 /** Offene Punkte bei den Fertigkeiten – leer, wenn alles vollständig ist. */
 export function skillIssues(c: Character): string[] {
-  const cls = getClass(c.classId);
-  if (!cls) return [];
-  const bgSkills: string[] = getBackground(c.backgroundId)?.skills ?? [];
-  const picked = c.skillProfs.filter((s) => cls.skillList.includes(s) && !bgSkills.includes(s)).length;
-  const open = cls.skillCount - picked;
-  return open > 0 ? [`Es fehlen noch ${open} von ${cls.skillCount} Fertigkeiten der Klasse ${cls.name}.`] : [];
+  const issues: string[] = [];
+  const cls = classOf(c);
+  const granted = grantedSkills(c);
+  if (cls) {
+    const picked = c.skillProfs.filter((s) => cls.skillList.includes(s) && !granted.includes(s)).length;
+    const open = cls.skillCount - picked;
+    if (open > 0) issues.push(`Es fehlen noch ${open} von ${cls.skillCount} Fertigkeiten der Klasse ${cls.name}.`);
+  }
+  const sp = speciesOf(c);
+  if (sp?.skillChoices && c.raceSkills.length < sp.skillChoices) {
+    issues.push(`Es fehlen noch ${sp.skillChoices - c.raceSkills.length} frei wählbare Fertigkeiten durch das Volk ${sp.name}.`);
+  }
+  return issues;
 }
 
 export function derive(c: Character) {
-  const cls = getClass(c.classId);
-  const bg = getBackground(c.backgroundId);
-  const sp = getSpecies(c.speciesId);
+  const cls = classOf(c);
+  const bg = backgroundOf(c);
+  const sp = speciesOf(c);
+  const sub = subclassOf(c);
   const pb = ov(c, "prof", profBonus(c.level));
   const scores = {} as Record<Ab, number>;
   const mods = {} as Record<Ab, number>;
@@ -179,12 +216,12 @@ export function derive(c: Character) {
     const prof = !!cls?.saves.includes(a);
     saves[a] = { prof, v: ov(c, `save:${a}`, mods[a] + (prof ? pb : 0)) };
   }
-  const bgSkills: string[] = bg?.skills ?? [];
+  const fixed = grantedSkills(c);
   const skills = SKILLS.map((s) => {
-    const prof = bgSkills.includes(s.name) || c.skillProfs.includes(s.name);
+    const prof = fixed.includes(s.name) || c.skillProfs.includes(s.name) || c.raceSkills.includes(s.name);
     const exp = prof && c.expertise.includes(s.name);
     const v = ov(c, `skill:${s.name}`, mods[s.ab] + (exp ? pb * 2 : prof ? pb : 0));
-    return { ...s, prof, exp, fromBg: bgSkills.includes(s.name), v };
+    return { ...s, prof, exp, fromBg: fixed.includes(s.name) || c.raceSkills.includes(s.name), v };
   });
   const perception = skills.find((s) => s.name === "Perception")!;
   const passive = ov(c, "passive", 10 + perception.v);
@@ -195,7 +232,7 @@ export function derive(c: Character) {
   const avg = hd / 2 + 1;
   let hp = Math.max(1, hd + mods.CON);
   for (let l = 2; l <= c.level; l++) hp += Math.max(1, (c.hpRolls[l - 2] ?? avg) + mods.CON);
-  if (sp?.id === "dwarf") hp += c.level;
+  hp += (sp?.hpPerLevel ?? 0) * c.level;
   const maxHp = ov(c, "maxHp", hp);
 
   const armor = ARMORS.find((a) => a.id === c.armorId);
@@ -211,12 +248,12 @@ export function derive(c: Character) {
   const opt = sp?.options?.find((o) => o.name === c.speciesOption);
   const speed = ov(c, "speed", opt?.speed ?? sp?.speed ?? 30);
 
-  const sa = cls?.spellAbility;
+  const sa = cls?.spellAbility && c.level >= (cls.casterStart ?? 1) ? cls.spellAbility : undefined;
   const spellDc = sa ? ov(c, "spellDc", 8 + pb + mods[sa]) : null;
   const spellAtk = sa ? ov(c, "spellAtk", pb + mods[sa]) : null;
   const slots = spellSlots(cls, c.level);
 
-  return { cls, bg, sp, pb, scores, mods, saves, skills, passive, initiative, maxHp, ac, speed, spellDc, spellAtk, slots, hd };
+  return { cls, bg, sp, sub, pb, scores, mods, saves, skills, passive, initiative, maxHp, ac, speed, spellDc, spellAtk, slots, hd };
 }
 
 export function download(name: string, data: unknown) {

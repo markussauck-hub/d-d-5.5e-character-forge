@@ -3,8 +3,10 @@ import type { Ab } from "./rules";
 export interface Background {
   id: string;
   name: string;
-  abilities: [Ab, Ab, Ab];
-  feat: string;
+  /** Nur 5.5e: Attribute für den Hintergrund-Bonus. */
+  abilities?: [Ab, Ab, Ab];
+  /** Nur 5.5e: Herkunftstalent. */
+  feat?: string;
   /** Interne (englische) Fertigkeitsschlüssel, Anzeige über skillName(). */
   skills: [string, string];
   tool: string;

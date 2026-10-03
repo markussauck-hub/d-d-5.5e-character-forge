@@ -3,7 +3,8 @@ import { useState } from "react";
 import {
   ABILITIES, AB_NAMES, AB_SHORT, ARMOR_TYPE_DE, CONDITIONS, alignmentName, conditionName, sizeName, skillName, type Ab,
 } from "@/data/rules";
-import { featuresAt, isAsiLevel, masteryCount, SUBCLASS_LEVEL } from "@/data/classes";
+import { featuresAt, isAsiLevel, masteryCount } from "@/data/classes";
+import { EDITION_LABEL, ruleset } from "@/data/edition";
 import { speciesOptionLabel } from "@/data/species";
 import { abilityIssues, derive, skillIssues, fmt, updateCharacter, useCharacters, useHydratedStore, type Character } from "@/lib/character";
 
@@ -65,8 +66,10 @@ function Sheet() {
     <OvField key={k} v={v} on={k in c.overrides} signed={opts.signed} big={opts.big} onSet={(n) => setOv(k, n)} />
   );
   const hp = c.currentHp ?? d.maxHp;
-  const withSub = c.hasSubclass && c.level >= SUBCLASS_LEVEL;
-  const features = d.cls ? Array.from({ length: c.level }, (_, i) => featuresAt(d.cls!, i + 1, withSub).map((f) => `${i + 1}: ${f}`)).flat() : [];
+  const sub = d.cls && c.level >= d.cls.subclassLevel ? d.sub : undefined;
+  const features = d.cls ? Array.from({ length: c.level }, (_, i) => featuresAt(d.cls!, i + 1, sub).map((f) => `${i + 1}: ${f}`)).flat() : [];
+  const exhaustion2014 = ["—", "Nachteil auf Attributswürfe", "+ Bewegungsrate halbiert", "+ Nachteil auf Angriffs- und Rettungswürfe",
+    "+ TP-Maximum halbiert", "+ Bewegungsrate 0", "Tod"];
 
   return (
     <main className="mx-auto max-w-6xl px-3 py-6">
@@ -92,12 +95,12 @@ function Sheet() {
         <header className="mb-4 grid gap-2 border-b-2 border-border pb-3 sm:grid-cols-[2fr_3fr]">
           <input className="num !text-left font-display text-3xl" value={c.name} placeholder="Name" onChange={(e) => set({ name: e.target.value })} />
           <div className="grid grid-cols-2 gap-x-4 text-sm sm:grid-cols-3">
-            <Info l="Klasse & Stufe" v={d.cls ? `${d.cls.name} ${c.level}${withSub ? ` (${d.cls.subclass})` : ""}` : "—"} />
-            <Info l="Spezies" v={[d.sp?.name, speciesOptionLabel(d.sp, c.speciesOption)].filter(Boolean).join(" – ") || "—"} />
+            <Info l={`Klasse & Stufe · ${EDITION_LABEL[c.edition]}`} v={d.cls ? `${d.cls.name} ${c.level}${sub ? ` (${sub.name})` : ""}` : "—"} />
+            <Info l={ruleset(c).speciesTerm} v={[d.sp?.name, speciesOptionLabel(d.sp, c.speciesOption)].filter(Boolean).join(" – ") || "—"} />
             <Info l="Hintergrund" v={d.bg?.name ?? "—"} />
             <Info l="Gesinnung" v={c.alignment ? alignmentName(c.alignment) : "—"} />
             <Info l="Größe" v={c.size ? sizeName(c.size) : "—"} />
-            <Info l="Herkunftstalent" v={d.bg?.feat ?? "—"} />
+            {c.edition === "2024" && <Info l="Herkunftstalent" v={d.bg?.feat ?? "—"} />}
           </div>
         </header>
 
@@ -178,7 +181,7 @@ function Sheet() {
                     onClick={() => set({ conditions: c.conditions.includes(x) ? c.conditions.filter((y) => y !== x) : [...c.conditions, x] })}>{conditionName(x)}</button>
                 ))}
               </div>
-              <label className="mt-2 flex items-center justify-between text-sm">Erschöpfung (−{c.exhaustion * 2} auf W20-Tests)
+              <label className="mt-2 flex items-center justify-between gap-2 text-sm">Erschöpfung ({c.edition === "2014" ? exhaustion2014[c.exhaustion] : `−${c.exhaustion * 2} auf W20-Tests`})
                 <select className="field !w-16" value={c.exhaustion} onChange={(e) => set({ exhaustion: Number(e.target.value) })}>
                   {[0, 1, 2, 3, 4, 5, 6].map((n) => <option key={n}>{n}</option>)}
                 </select>
@@ -212,7 +215,8 @@ function Sheet() {
               <ul className="max-h-80 space-y-0.5 overflow-auto text-sm print:max-h-none">
                 {features.map((f) => <li key={f}>{f}</li>)}
                 {d.sp?.traits.map((t) => <li key={t.name} className="text-muted-foreground">{t.name} ({d.sp!.name})</li>)}
-                {d.bg && <li className="text-muted-foreground">{d.bg.feat} (Herkunftstalent)</li>}
+                {d.bg?.feat && <li className="text-muted-foreground">{d.bg.feat} (Herkunftstalent)</li>}
+                {sub && !sub.features && <li className="text-muted-foreground">Merkmale von {sub.name}: siehe Spielerhandbuch</li>}
                 {c.feats.map((f, i) => <li key={i}>Talent: {f}</li>)}
               </ul>
               {d.cls && (
@@ -271,17 +275,19 @@ function LevelUp({ c, onClose }: { c: Character; onClose: () => void }) {
   const L = c.level + 1;
   const avg = cls.hitDie / 2 + 1;
   const [hp, setHp] = useState(avg);
-  const [sub, setSub] = useState(c.hasSubclass || L === SUBCLASS_LEVEL);
+  const pickSub = L === cls.subclassLevel;
+  const [subId, setSubId] = useState<string | undefined>(c.hasSubclass ? (c.subclassId ?? cls.subclasses[0]!.id) : pickSub ? cls.subclasses[0]!.id : undefined);
+  const sub = cls.subclasses.find((s) => s.id === subId);
   const [mode, setMode] = useState<"2" | "11" | "feat">("2");
   const [a1, setA1] = useState<Ab>("STR");
   const [a2, setA2] = useState<Ab>("DEX");
   const [feat, setFeat] = useState("");
   const asi = isAsiLevel(cls, L);
-  const feats = featuresAt(cls, L, sub && L >= SUBCLASS_LEVEL);
+  const feats = featuresAt(cls, L, sub);
 
   const apply = () => {
     const rolls = [...c.hpRolls]; rolls[L - 2] = hp;
-    const p: Partial<Character> = { level: L, hpRolls: rolls, hasSubclass: sub };
+    const p: Partial<Character> = { level: L, hpRolls: rolls, hasSubclass: !!sub, subclassId: sub?.id };
     if (asi) {
       if (mode === "feat") p.feats = [...c.feats, feat || "Talent"];
       else {
@@ -302,8 +308,12 @@ function LevelUp({ c, onClose }: { c: Character; onClose: () => void }) {
           <ul className="list-disc pl-5 text-sm">{feats.length ? feats.map((f) => <li key={f}>{f}</li>) : <li>Keine neuen Klassenmerkmale</li>}</ul>
           {d.slots.length > 0 && <p className="mt-1 text-xs text-muted-foreground">Zauberplätze werden automatisch aktualisiert.</p>}
         </div>
-        {L === SUBCLASS_LEVEL && (
-          <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={sub} onChange={(e) => setSub(e.target.checked)} /> Unterklasse zuweisen: <b>{cls.subclass}</b></label>
+        {pickSub && (
+          <label className="block space-y-1 text-sm"><span className="label">Unterklasse wählen</span>
+            <select className="field" value={subId ?? ""} onChange={(e) => setSubId(e.target.value || undefined)}>
+              {cls.subclasses.map((s) => <option key={s.id} value={s.id}>{s.name}{s.features ? " (SRD)" : " – Merkmale siehe Spielerhandbuch"}</option>)}
+            </select>
+          </label>
         )}
         <div><p className="label">Trefferpunkte (W{cls.hitDie} + KO {fmt(d.mods.CON)})</p>
           <div className="mt-1 flex flex-wrap items-center gap-2">

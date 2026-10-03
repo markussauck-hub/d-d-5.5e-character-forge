@@ -3,16 +3,14 @@ import { useRef } from "react";
 import {
   deleteCharacter, download, importCharacters, newCharacter, saveCharacter, useCharacters, useHydratedStore,
 } from "@/lib/character";
-import { getClass } from "@/data/classes";
-import { getSpecies } from "@/data/species";
-import { getBackground } from "@/data/backgrounds";
+import { backgroundOf, classOf, EDITION_LABEL, speciesOf, type Edition } from "@/data/edition";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Heldenschmiede – Deine Charaktere (D&D 5.5e SRD)" },
-      { name: "description", content: "Charaktere für die SRD-5.2-Regeln erstellen, verwalten, leveln und drucken." },
-      { property: "og:title", content: "Heldenschmiede – Charaktereditor 5.5e" },
+      { title: "Heldenschmiede – Deine Charaktere (D&D 5e & 5.5e)" },
+      { name: "description", content: "Charaktere für D&D 5e (2014) und 5.5e (2024) erstellen, verwalten, leveln und drucken." },
+      { property: "og:title", content: "Heldenschmiede – Charaktereditor 5e & 5.5e" },
       { property: "og:description", content: "Charaktere für die SRD-5.2-Regeln erstellen, verwalten, leveln und drucken." },
     ],
   }),
@@ -25,8 +23,8 @@ function Index() {
   const navigate = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const create = () => {
-    const c = newCharacter();
+  const create = (edition: Edition) => {
+    const c = newCharacter(edition);
     saveCharacter(c);
     navigate({ to: "/wizard/$id", params: { id: c.id } });
   };
@@ -44,13 +42,14 @@ function Index() {
   return (
     <main className="mx-auto max-w-5xl px-4 py-10">
       <header className="mb-10 text-center">
-        <p className="label mb-2">Regeln 2024 · SRD 5.2</p>
+        <p className="label mb-2">5e (2014) · 5.5e (2024) · SRD 5.1 & 5.2</p>
         <h1 className="text-4xl font-bold text-primary sm:text-5xl">Heldenschmiede</h1>
         <p className="mt-3 text-muted-foreground">Erschaffe, verwalte und levele deine Abenteurer.</p>
       </header>
 
       <div className="mb-6 flex flex-wrap gap-2">
-        <button className="btn btn-primary" onClick={create}>+ Neuer Charakter</button>
+        <button className="btn btn-primary" onClick={() => create("2024")}>+ Neuer Charakter 5.5e (2024)</button>
+        <button className="btn btn-primary" onClick={() => create("2014")}>+ Neuer Charakter 5e (2014)</button>
         <button className="btn" onClick={() => download("charaktere.json", chars)} disabled={!chars.length}>
           Alle exportieren
         </button>
@@ -67,13 +66,13 @@ function Index() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {chars.map((c) => {
-          const cls = getClass(c.classId);
+          const cls = classOf(c);
           return (
             <article key={c.id} className="panel flex flex-col gap-3">
               <div>
-                <h2 className="text-lg font-bold">{c.name || "Unbenannt"}</h2>
+                <h2 className="text-lg font-bold">{c.name || "Unbenannt"} <span className="label align-middle">{EDITION_LABEL[c.edition]}</span></h2>
                 <p className="text-sm text-muted-foreground">
-                  {[getSpecies(c.speciesId)?.name, cls ? `${cls.name} ${c.level}` : null, getBackground(c.backgroundId)?.name]
+                  {[speciesOf(c)?.name, cls ? `${cls.name} ${c.level}` : null, backgroundOf(c)?.name]
                     .filter(Boolean).join(" · ") || "In Erstellung"}
                 </p>
               </div>

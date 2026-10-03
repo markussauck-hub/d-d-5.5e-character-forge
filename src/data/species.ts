@@ -1,3 +1,5 @@
+import type { Ab } from "./rules";
+
 export interface Species {
   id: string;
   name: string;
@@ -8,6 +10,16 @@ export interface Species {
   optionLabel?: string;
   /** `name` ist der gespeicherte Schlüssel (englisch), `label` die deutsche Anzeige. */
   options?: { name: string; label: string; text: string; speed?: number }[];
+  /** 5e: feste Attributboni des Volks. */
+  bonuses?: Partial<Record<Ab, number>>;
+  /** 5e (Halbelf): frei wählbare Boni, z. B. 2× +1 auf andere Attribute. */
+  chooseBonus?: { count: number; amount: number; exclude: Ab[] };
+  /** Feste Fertigkeiten durch das Volk (interne Schlüssel). */
+  skills?: string[];
+  /** Anzahl frei wählbarer Fertigkeiten durch das Volk (Halbelf). */
+  skillChoices?: number;
+  /** Zusätzliche maximale TP pro Stufe (Zwerg). */
+  hpPerLevel?: number;
 }
 
 export const SPECIES: Species[] = [
@@ -28,7 +40,7 @@ export const SPECIES: Species[] = [
     ] as [string, string, string][]).map(([n, l, d]) => ({ name: n, label: l, text: `Schadensart: ${d}` })),
   },
   {
-    id: "dwarf", name: "Zwerg", sizes: ["Medium"], speed: 30,
+    id: "dwarf", name: "Zwerg", sizes: ["Medium"], speed: 30, hpPerLevel: 1,
     traits: [
       { name: "Dunkelsicht", text: "120 ft." },
       { name: "Zwergische Widerstandskraft", text: "Resistenz gegen Giftschaden; Vorteil auf Rettungswürfe gegen den Zustand Vergiftet." },

@@ -79,8 +79,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Heldenschmiede – Charaktereditor 5.5e" },
-      { name: "description", content: "Charaktereditor für die SRD-5.2-Regeln (2024)." },
+      { title: "Heldenschmiede – Charaktereditor 5e & 5.5e" },
+      { name: "description", content: "Charaktereditor für D&D 5e (2014) und 5.5e (2024)." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
