@@ -133,11 +133,13 @@ function ClassStep({ c, set }: P) {
       {cls && (
         <div className="panel space-y-2">
           <h3 className="font-bold">Unterklasse</h3>
-          {c.level < cls.subclassLevel ? (
-            <p className="text-sm text-muted-foreground">Die Unterklasse wird auf Stufe {cls.subclassLevel} gewählt (beim Stufenaufstieg).</p>
-          ) : (
-            <SubclassPicker c={c} set={set} />
+          {c.level < cls.subclassLevel && (
+            <p className="text-sm text-muted-foreground">
+              Regulär wählst du die Unterklasse auf Stufe {cls.subclassLevel}. Du kannst sie aber schon jetzt festlegen –
+              ihre Merkmale erscheinen auf dem Bogen, sobald die jeweilige Stufe erreicht ist.
+            </p>
           )}
+          <SubclassPicker c={c} set={set} />
         </div>
       )}
     </div>
@@ -151,6 +153,12 @@ export function SubclassPicker({ c, set }: P) {
   const current = c.hasSubclass ? (c.subclassId ?? cls.subclasses[0]!.id) : "";
   return (
     <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+      {c.level < cls.subclassLevel && (
+        <button className="choice" data-active={!c.hasSubclass} onClick={() => set({ hasSubclass: false, subclassId: undefined })}>
+          <b>Noch keine</b>
+          <p className="text-xs text-muted-foreground">Erst beim Stufenaufstieg auf Stufe {cls.subclassLevel} wählen</p>
+        </button>
+      )}
       {cls.subclasses.map((s) => (
         <button key={s.id} className="choice" data-active={current === s.id} onClick={() => set({ hasSubclass: true, subclassId: s.id })}>
           <b>{s.name}</b>

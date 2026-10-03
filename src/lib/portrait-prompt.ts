@@ -115,7 +115,7 @@ export function buildPortraitPrompt(c: Character, lang: PromptLang, style: Promp
   const cls = classOf(c);
   const sp = speciesOf(c);
   const bg = backgroundOf(c);
-  const sub = cls && c.level >= cls.subclassLevel ? subclassOf(c) : undefined;
+  const sub = subclassOf(c);
   const armor = ARMORS.find((a) => a.id === c.armorId);
   const parts: string[] = [];
 

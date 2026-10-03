@@ -66,7 +66,9 @@ function Sheet() {
     <OvField key={k} v={v} on={k in c.overrides} signed={opts.signed} big={opts.big} onSet={(n) => setOv(k, n)} />
   );
   const hp = c.currentHp ?? d.maxHp;
-  const sub = d.cls && c.level >= d.cls.subclassLevel ? d.sub : undefined;
+  // Unterklasse darf vorab gewählt sein; ihre Merkmale schaltet featuresAt() erst ab der Unterklassen-Stufe frei.
+  const sub = d.sub;
+  const subActive = !!d.cls && c.level >= d.cls.subclassLevel;
   const features = d.cls ? Array.from({ length: c.level }, (_, i) => featuresAt(d.cls!, i + 1, sub).map((f) => `${i + 1}: ${f}`)).flat() : [];
   const exhaustion2014 = ["—", "Nachteil auf Attributswürfe", "+ Bewegungsrate halbiert", "+ Nachteil auf Angriffs- und Rettungswürfe",
     "+ TP-Maximum halbiert", "+ Bewegungsrate 0", "Tod"];
@@ -95,7 +97,7 @@ function Sheet() {
         <header className="mb-4 grid gap-2 border-b-2 border-border pb-3 sm:grid-cols-[2fr_3fr]">
           <input className="num !text-left font-display text-3xl" value={c.name} placeholder="Name" onChange={(e) => set({ name: e.target.value })} />
           <div className="grid grid-cols-2 gap-x-4 text-sm sm:grid-cols-3">
-            <Info l={`Klasse & Stufe · ${EDITION_LABEL[c.edition]}`} v={d.cls ? `${d.cls.name} ${c.level}${sub ? ` (${sub.name})` : ""}` : "—"} />
+            <Info l={`Klasse & Stufe · ${EDITION_LABEL[c.edition]}`} v={d.cls ? `${d.cls.name} ${c.level}${sub ? ` (${sub.name}${subActive ? "" : `, ab Stufe ${d.cls.subclassLevel}`})` : ""}` : "—"} />
             <Info l={ruleset(c).speciesTerm} v={[d.sp?.name, speciesOptionLabel(d.sp, c.speciesOption)].filter(Boolean).join(" – ") || "—"} />
             <Info l="Hintergrund" v={d.bg?.name ?? "—"} />
             <Info l="Gesinnung" v={c.alignment ? alignmentName(c.alignment) : "—"} />
@@ -216,7 +218,7 @@ function Sheet() {
                 {features.map((f) => <li key={f}>{f}</li>)}
                 {d.sp?.traits.map((t) => <li key={t.name} className="text-muted-foreground">{t.name} ({d.sp!.name})</li>)}
                 {d.bg?.feat && <li className="text-muted-foreground">{d.bg.feat} (Herkunftstalent)</li>}
-                {sub && !sub.features && <li className="text-muted-foreground">Merkmale von {sub.name}: siehe Spielerhandbuch</li>}
+                {sub && subActive && !sub.features && <li className="text-muted-foreground">Merkmale von {sub.name}: siehe Spielerhandbuch</li>}
                 {c.feats.map((f, i) => <li key={i}>Talent: {f}</li>)}
               </ul>
               {d.cls && (
