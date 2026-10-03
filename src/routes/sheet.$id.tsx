@@ -3,7 +3,7 @@ import { useState } from "react";
 import {
   ABILITIES, AB_NAMES, AB_SHORT, ARMOR_TYPE_DE, CONDITIONS, alignmentName, conditionName, sizeName, skillName, type Ab,
 } from "@/data/rules";
-import { featuresAt, isAsiLevel, masteryCount } from "@/data/classes";
+import { featuresAt, isAsiLevel, masteryCount, subclassFeatureList } from "@/data/classes";
 import { EDITION_LABEL, ruleset } from "@/data/edition";
 import { speciesOptionLabel } from "@/data/species";
 import { abilityIssues, derive, skillIssues, fmt, updateCharacter, useCharacters, useHydratedStore, type Character } from "@/lib/character";
@@ -69,7 +69,14 @@ function Sheet() {
   // Unterklasse darf vorab gewählt sein; ihre Merkmale schaltet featuresAt() erst ab der Unterklassen-Stufe frei.
   const sub = d.sub;
   const subActive = !!d.cls && c.level >= d.cls.subclassLevel;
-  const features = d.cls ? Array.from({ length: c.level }, (_, i) => featuresAt(d.cls!, i + 1, sub).map((f) => `${i + 1}: ${f}`)).flat() : [];
+  const early = !!sub && !subActive && c.subclassEarly;
+  const classFeats: [number, string][] = d.cls
+    ? Array.from({ length: c.level }, (_, i) => featuresAt(d.cls!, i + 1, undefined).map((f) => [i + 1, f] as [number, string])).flat()
+    : [];
+  const subFeats = d.cls ? subclassFeatureList(d.cls, sub, c.level, c.subclassEarly) : [];
+  const features = [...classFeats, ...subFeats]
+    .sort((a, b) => a[0] - b[0])
+    .map(([l, f]) => `${l}: ${f}${early && l > c.level ? " (Hausregel)" : ""}`);
   const exhaustion2014 = ["—", "Nachteil auf Attributswürfe", "+ Bewegungsrate halbiert", "+ Nachteil auf Angriffs- und Rettungswürfe",
     "+ TP-Maximum halbiert", "+ Bewegungsrate 0", "Tod"];
 
@@ -218,7 +225,7 @@ function Sheet() {
                 {features.map((f) => <li key={f}>{f}</li>)}
                 {d.sp?.traits.map((t) => <li key={t.name} className="text-muted-foreground">{t.name} ({d.sp!.name})</li>)}
                 {d.bg?.feat && <li className="text-muted-foreground">{d.bg.feat} (Herkunftstalent)</li>}
-                {sub && subActive && !sub.features && <li className="text-muted-foreground">Merkmale von {sub.name}: siehe Spielerhandbuch</li>}
+                {sub && (subActive || c.subclassEarly) && !sub.features && <li className="text-muted-foreground">Merkmale von {sub.name}: siehe Spielerhandbuch</li>}
                 {c.feats.map((f, i) => <li key={i}>Talent: {f}</li>)}
               </ul>
               {d.cls && (

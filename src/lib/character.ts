@@ -13,6 +13,8 @@ export interface Character {
   classId?: string | undefined;
   hasSubclass: boolean;
   subclassId?: string | undefined;
+  /** Hausregel: Einstiegsmerkmale der Unterklasse schon vor der Unterklassen-Stufe. */
+  subclassEarly: boolean;
   level: number;
   backgroundId?: string | undefined;
   speciesId?: string | undefined;
@@ -60,7 +62,7 @@ const empty = (): Record<Ab, number> => ({ STR: -1, DEX: -1, CON: -1, INT: -1, W
 
 export function newCharacter(edition: Edition = "2024"): Character {
   return {
-    id: crypto.randomUUID(), name: "", edition, hasSubclass: false, raceBonusChoice: [], raceSkills: [], level: 1, method: "standard",
+    id: crypto.randomUUID(), name: "", edition, hasSubclass: false, subclassEarly: false, raceBonusChoice: [], raceSkills: [], level: 1, method: "standard",
     baseScores: eight(), assign: empty(), rolled: [], bgMode: "21", asi: zero(), skillProfs: [],
     expertise: [], hpRolls: [], armorId: "", shield: false, overrides: {}, currentHp: null, tempHp: 0,
     hitDiceUsed: 0, deathSaves: { s: 0, f: 0 }, conditions: [], exhaustion: 0, slotsUsed: [],

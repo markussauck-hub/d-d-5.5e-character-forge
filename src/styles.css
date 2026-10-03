@@ -120,6 +120,42 @@
 
 .print-only { display: none; }
 
+/* ---------- Startseite: Burg mit zwei Toren ---------- */
+.castle { max-width: 60rem; margin: 0 auto; }
+.castle-stage { position: relative; aspect-ratio: 1000 / 600; }
+.castle-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.castle-stone { fill: color-mix(in oklab, var(--background) 72%, var(--ink-soft)); }
+.castle-courses { fill: none; stroke: var(--background); stroke-opacity: 0.55; stroke-width: 1.5; }
+.castle-moon { fill: var(--parchment); opacity: 0.9; }
+.castle-window { fill: var(--primary); opacity: 0.75; }
+.castle-pole { stroke: var(--ink-soft); stroke-width: 3; }
+.castle-flag { fill: var(--ember); }
+.castle-arch { fill: none; stroke: color-mix(in oklab, var(--background) 45%, var(--ink-soft)); stroke-width: 14; stroke-dasharray: 22 4; }
+.castle-banner { fill: var(--ember); stroke: var(--primary); stroke-width: 2; }
+.castle-banner-title { font-family: var(--font-display); font-weight: 700; font-size: 26px; fill: var(--parchment); }
+.castle-banner-year { font-family: var(--font-display); font-size: 13px; letter-spacing: 0.08em; fill: var(--primary); }
+.castle-ground { fill: color-mix(in oklab, var(--background) 85%, black); }
+.castle-spill { fill: var(--primary); opacity: 0.12; transition: opacity 0.6s ease; }
+
+.castle-gate { position: absolute; padding: 0; border: 0; background: none; cursor: pointer; border-radius: 50% 50% 0 0 / 40% 40% 0 0; }
+.castle-gate svg { display: block; width: 100%; height: 100%; }
+.castle-gate-dark { fill: var(--background); opacity: 0.55; transition: opacity 0.6s ease; }
+.castle-portcullis { fill: color-mix(in oklab, var(--ink) 80%, black); transform-box: fill-box; transition: transform 0.7s cubic-bezier(0.3, 0.7, 0.2, 1); }
+.castle-gate:hover .castle-portcullis, .castle-gate:focus-visible .castle-portcullis { transform: translateY(-78%); }
+.castle-gate:hover .castle-gate-dark, .castle-gate:focus-visible .castle-gate-dark { opacity: 0; }
+.castle-gate:focus-visible { outline: 3px solid var(--primary); outline-offset: 6px; }
+.castle-stage:has(.castle-gate[data-edition="2024"]:is(:hover, :focus-visible)) .castle-spill[data-gate="2024"],
+.castle-stage:has(.castle-gate[data-edition="2014"]:is(:hover, :focus-visible)) .castle-spill[data-gate="2014"] { opacity: 0.45; }
+
+.castle-captions { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; padding: 0 12%; margin-top: 0.75rem; text-align: center; }
+.castle-caption h2 { font-size: 1.125rem; color: var(--primary); }
+.castle-caption h2 span { color: var(--muted-foreground); font-weight: 400; }
+.castle-caption p { margin-top: 0.25rem; font-size: 0.875rem; line-height: 1.5; color: var(--muted-foreground); }
+@media (max-width: 640px) { .castle-captions { padding: 0; gap: 0.75rem; } .castle-caption p { font-size: 0.8rem; } }
+@media (prefers-reduced-motion: reduce) {
+  .castle-portcullis, .castle-gate-dark, .castle-spill { transition: none; }
+}
+
 @media print {
   @page { size: A4; margin: 10mm; }
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }

@@ -3,6 +3,7 @@ import { useRef } from "react";
 import {
   deleteCharacter, download, importCharacters, newCharacter, saveCharacter, useCharacters, useHydratedStore,
 } from "@/lib/character";
+import { CastleGate } from "@/components/CastleGate";
 import { backgroundOf, classOf, EDITION_LABEL, speciesOf, type Edition } from "@/data/edition";
 
 export const Route = createFileRoute("/")({
@@ -41,26 +42,28 @@ function Index() {
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-10">
-      <header className="mb-10 text-center">
-        <p className="label mb-2">5e (2014) · 5.5e (2024) · SRD 5.1 & 5.2</p>
+      <header className="mb-4 text-center">
         <h1 className="text-4xl font-bold text-primary sm:text-5xl">Heldenschmiede</h1>
-        <p className="mt-3 text-muted-foreground">Erschaffe, verwalte und levele deine Abenteurer.</p>
+        <p className="mt-3 text-muted-foreground">Wähle ein Tor, um einen neuen Helden zu erschaffen.</p>
       </header>
 
-      <div className="mb-6 flex flex-wrap gap-2">
-        <button className="btn btn-primary" onClick={() => create("2024")}>+ Neuer Charakter 5.5e (2024)</button>
-        <button className="btn btn-primary" onClick={() => create("2014")}>+ Neuer Charakter 5e (2014)</button>
+      <CastleGate onEnter={create} />
+
+      <div className="mb-6 mt-14 flex flex-wrap items-baseline justify-between gap-3 border-t border-border pt-8">
+        <h2 className="text-2xl font-bold">Deine Helden</h2>
+        <div className="flex flex-wrap gap-2">
         <button className="btn" onClick={() => download("charaktere.json", chars)} disabled={!chars.length}>
           Alle exportieren
         </button>
         <button className="btn" onClick={() => fileRef.current?.click()}>JSON importieren</button>
         <input ref={fileRef} type="file" accept="application/json,.json" hidden onChange={(e) => { onImport(e.target.files?.[0]); e.target.value = ""; }} />
+        </div>
       </div>
 
       {hydrated && chars.length === 0 && (
         <div className="panel py-14 text-center text-muted-foreground">
           <p className="font-display text-xl text-foreground">Noch keine Helden</p>
-          <p className="mt-2 text-sm">Lege deinen ersten Charakter an, um loszulegen.</p>
+          <p className="mt-2 text-sm">Tritt oben durch eines der beiden Tore, um deinen ersten Charakter anzulegen.</p>
         </div>
       )}
 

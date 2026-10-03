@@ -140,6 +140,17 @@ function ClassStep({ c, set }: P) {
             </p>
           )}
           <SubclassPicker c={c} set={set} />
+          {c.level < cls.subclassLevel && c.hasSubclass && (
+            <label className="flex items-start gap-2 pt-2 text-sm">
+              <input type="checkbox" className="mt-1" checked={c.subclassEarly} onChange={(e) => set({ subclassEarly: e.target.checked })} />
+              <span>
+                <b>Hausregel: Unterklassen-Merkmale sofort</b><br />
+                <span className="text-muted-foreground">
+                  Die Merkmale, die man regulär auf Stufe {cls.subclassLevel} bekommt, gelten schon jetzt. Spätere Merkmale kommen weiterhin auf ihrer Stufe.
+                </span>
+              </span>
+            </label>
+          )}
         </div>
       )}
     </div>

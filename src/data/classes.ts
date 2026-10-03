@@ -188,5 +188,19 @@ export function featuresAt(c: ClassDef, level: number, sub: Subclass | undefined
   return [...base, ...extra];
 }
 
+/**
+ * Merkmale der Unterklasse bis zur aktuellen Stufe, als [Stufe, Text].
+ * early (Hausregel): Die Einstiegsmerkmale der Unterklasse gelten sofort, auch unterhalb der Unterklassen-Stufe;
+ * spätere Merkmale kommen weiterhin auf ihrer Stufe.
+ */
+export function subclassFeatureList(c: ClassDef, sub: Subclass | undefined, level: number, early: boolean): [number, string][] {
+  if (!sub?.features) return [];
+  return Object.entries(sub.features)
+    .map(([l, xs]) => [Number(l), xs] as const)
+    .filter(([l]) => (l <= level && level >= c.subclassLevel) || (early && (l <= level || l === c.subclassLevel)))
+    .sort((a, b) => a[0] - b[0])
+    .flatMap(([l, xs]) => xs.map((x) => [l, `${x} (${sub.name})`] as [number, string]));
+}
+
 export const isAsiLevel = (c: ClassDef, level: number) =>
   (c.features[level] ?? []).some((x) => x === ASI || x === EPIC_BOON);
