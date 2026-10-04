@@ -196,7 +196,7 @@ export function skillIssues(c: Character): string[] {
   }
   const sp = speciesOf(c);
   if (sp?.skillChoices && c.raceSkills.length < sp.skillChoices) {
-    issues.push(`Es fehlen noch ${sp.skillChoices - c.raceSkills.length} frei wählbare Fertigkeiten durch das Volk ${sp.name}.`);
+    issues.push(`Es fehlen noch ${sp.skillChoices - c.raceSkills.length} frei wählbare Fertigkeit(en) durch ${sp.name}.`);
   }
   return issues;
 }
@@ -245,6 +245,7 @@ export function derive(c: Character) {
   else if (cls?.id === "monk" && !c.shield) ac = 10 + mods.DEX + mods.WIS;
   else ac = 10 + mods.DEX;
   if (c.shield) ac += 2;
+  ac += sp?.acBonus ?? 0;
   ac = ov(c, "ac", ac);
 
   const opt = sp?.options?.find((o) => o.name === c.speciesOption);

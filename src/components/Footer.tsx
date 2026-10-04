@@ -3,7 +3,7 @@ export function Footer() {
     <footer className="no-print mt-16 border-t border-border px-4 py-6 text-center text-xs leading-relaxed text-muted-foreground">
       <p className="mx-auto mb-2 max-w-3xl">
         Dieses Werk enthält Material aus den System Reference Documents 5.1 und 5.2 von Wizards of the Coast, lizenziert unter CC BY 4.0.
-        Weitere Hintergrund- und Unterklassennamen stammen aus den Spielerhandbüchern und sind nur als Bezeichnung enthalten.
+        Weitere Hintergrund- und Unterklassennamen stammen aus den Spielerhandbüchern und sind nur als Bezeichnung enthalten; Warforged stammen aus den Eberron-Bänden (Merkmale in eigenen Worten zusammengefasst).
         Die vorgeschriebenen Lizenzhinweise im Original:
       </p>
       <p className="mx-auto mb-2 max-w-3xl" lang="en">

@@ -20,6 +20,10 @@ export interface Species {
   skillChoices?: number;
   /** Zusätzliche maximale TP pro Stufe (Zwerg). */
   hpPerLevel?: number;
+  /** Fester RK-Bonus (Warforged: Integrierter Schutz). */
+  acBonus?: number;
+  /** Quelle, falls nicht aus dem SRD. */
+  source?: string;
 }
 
 export const SPECIES: Species[] = [
@@ -134,6 +138,18 @@ export const SPECIES: Species[] = [
     ],
   },
 ];
+
+// Nicht-SRD: Eberron – Forge of the Artificer (2025). Regelwerte, Merkmale in eigenen Worten zusammengefasst.
+SPECIES.push({
+  id: "warforged", name: "Warforged", sizes: ["Medium", "Small"], speed: 30, acBonus: 1, skillChoices: 1,
+  source: "Eberron: Forge of the Artificer",
+  traits: [
+    { name: "Konstrukt-Widerstandskraft", text: "Resistenz gegen Giftschaden, Vorteil gegen den Zustand Vergiftet, immun gegen Krankheiten; kein Atmen, Essen oder Trinken nötig." },
+    { name: "Integrierter Schutz", text: "+1 RK (automatisch eingerechnet); angelegte Rüstung kann dir nicht gegen deinen Willen abgenommen werden." },
+    { name: "Wächterruhe", text: "Lange Rast in 6 Stunden regungslos, aber bei Bewusstsein; Magie kann dich nicht einschlafen lassen." },
+    { name: "Spezialisierte Bauweise", text: "Übung in einer Fertigkeit und einem Werkzeug deiner Wahl." },
+  ],
+});
 
 export const getSpecies = (id?: string) => SPECIES.find((s) => s.id === id);
 

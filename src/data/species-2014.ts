@@ -82,6 +82,18 @@ export const SPECIES_2014: Species[] = [
     ],
   },
   {
+    // Nicht-SRD: Eberron – Rising from the Last War (2019). Regelwerte, Merkmale in eigenen Worten zusammengefasst.
+    id: "warforged", name: "Warforged", sizes: ["Medium"], speed: 30, bonuses: { CON: 2 },
+    chooseBonus: { count: 1, amount: 1, exclude: ["CON"] }, acBonus: 1, skillChoices: 1,
+    source: "Eberron: Rising from the Last War",
+    traits: [
+      { name: "Konstrukt-Widerstandskraft", text: "Vorteil gegen Vergiftung, Resistenz gegen Giftschaden, immun gegen Krankheiten; kein Atmen, Essen oder Trinken nötig." },
+      { name: "Wächterruhe", text: "Lange Rast in 6 Stunden regungslos, aber bei Bewusstsein; Magie kann dich nicht einschlafen lassen." },
+      { name: "Integrierter Schutz", text: "+1 RK (automatisch eingerechnet); angelegte Rüstung kann dir nicht gegen deinen Willen abgenommen werden." },
+      { name: "Spezialisierte Bauweise", text: "Übung in einer Fertigkeit und einem Werkzeug deiner Wahl." },
+    ],
+  },
+  {
     id: "tiefling", name: "Tiefling", sizes: ["Medium"], speed: 30, bonuses: { CHA: 2, INT: 1 },
     traits: [
       { name: "Dunkelsicht", text: "60 ft." },

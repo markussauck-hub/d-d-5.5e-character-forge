@@ -224,6 +224,7 @@ function SpeciesStep({ c, set }: P) {
             onClick={() => set({ speciesId: s.id, speciesOption: undefined, size: s.sizes[0], raceBonusChoice: [], raceSkills: [] })}>
             <span className="font-display text-lg font-bold">{s.name}</span>
             <p className="text-xs text-muted-foreground">{s.sizes.map(sizeName).join(" / ")} · {s.speed} ft</p>
+            {s.source && <p className="text-xs italic text-muted-foreground">Quelle: {s.source} (nicht SRD)</p>}
             {s.bonuses && (
               <p className="text-xs text-muted-foreground">
                 {Object.entries(s.bonuses).map(([a, v]) => `${AB_SHORT[a as keyof typeof AB_SHORT]} +${v}`).join(", ")}
@@ -307,7 +308,7 @@ function SkillStep({ c, set }: P) {
 
       {d.sp?.skillChoices && (
         <div className="panel">
-          <h3 className="font-bold">Fertigkeiten durch das Volk ({c.raceSkills.length}/{d.sp.skillChoices} aus {d.sp.name})</h3>
+          <h3 className="font-bold">Fertigkeiten durch {d.sp.name} ({c.raceSkills.length}/{d.sp.skillChoices} frei wählbar)</h3>
           <div className="mt-3 flex flex-wrap gap-2">
             {SKILLS.map(({ name: s }) => {
               const on = c.raceSkills.includes(s);

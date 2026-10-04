@@ -43,6 +43,7 @@ const SPECIES: Record<string, L> = {
   halfling: { de: "Halbling: klein, rundliches freundliches Gesicht, barfuß", en: "halfling: small, round friendly face, barefoot" },
   human: { de: "Mensch", en: "human" },
   "half-elf": { de: "Halbelf: leicht spitze Ohren, Züge von Mensch und Elf", en: "half-elf: slightly pointed ears, mix of human and elven features" },
+  warforged: { de: "Warforged: humanoides Konstrukt aus Holz, Stein und Metall, Panzerplatten statt Haut, leuchtende Augen, sichtbare Fasern und Bolzen", en: "warforged: humanoid construct of wood, stone and metal, armored plates instead of skin, glowing eyes, visible fibers and rivets" },
   "half-orc": { de: "Halbork: kräftig, grünlich-graue Haut, kleine Hauer, markante Stirn", en: "half-orc: powerful build, greenish-grey skin, small tusks, prominent brow" },
   orc: { de: "Ork: kräftig, graugrüne Haut, kleine Hauer im Unterkiefer", en: "orc: powerful build, grey-green skin, small tusks in the lower jaw" },
   tiefling: { de: "Tiefling: Hörner, langer Schwanz, leuchtende Augen ohne Pupillen", en: "tiefling: horns, long tail, glowing pupil-less eyes" },
